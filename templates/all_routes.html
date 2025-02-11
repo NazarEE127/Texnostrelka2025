@@ -33,7 +33,7 @@ h2 {
         <div class="col">
           <div class="card shadow-sm">
             <div><h4>{{ routes[i].title }}</h4></div>
-            <a href="/route/{{ routes[i].id }}"><img src="static/ico/маршрут.png" class="card-img-top" width="50%" height="225"></a>
+            <a href="/route/{{ routes[i].id }}"><img src="static/img/{{ photos[routes[i].id][0] }}" class="card-img-top" width="50%" height="225"></a>
             <div class="card-body">
               <p class="card-text">{{routes[i].description}}</p>
               <p class="card-text">Рейтинг: <b>{{routes[i].rating}}</b></p>

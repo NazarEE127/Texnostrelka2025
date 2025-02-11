@@ -43,6 +43,7 @@ function init() {
     });
 
     document.getElementById('myButton').onclick = getRoute;
+    document.getElementById('myButton2').onclick = clearRoute;
 }
 
 function addPoint(coords) {
@@ -77,7 +78,6 @@ function getRoute() {
         alert('Пожалуйста, добавьте хотя бы 2 точки для построения маршрута.');
         return;
     }
-    console.log(points[0][0])
     fetch('/map', {
         method: 'POST',
         headers: {
@@ -102,8 +102,33 @@ function getRoute() {
                 results: 1
             }
         });
-
+        console.log(JSON.stringify(coordinates))
+        document.getElementById('routeCoordinates').value = JSON.stringify(coordinates);
         map.geoObjects.add(multiRoute);
         map.setBounds(multiRoute.getBounds());
+
     })
+
+}
+
+// Функция для очистки маршрута и маркеров
+function clearRoute() {
+    // Удаляем все маркеры с карты
+    placemarks.forEach(placemark => {
+        map.geoObjects.remove(placemark);
+    });
+
+    // Очищаем массив маркеров и точек
+    placemarks = [];
+    points = [];
+
+    // Очищаем список точек на странице
+    updatePointsList();
+
+    // Удаляем все маршруты с карты
+    map.geoObjects.each(function (geoObject) {
+        if (geoObject instanceof ymaps.multiRouter.MultiRoute) {
+            map.geoObjects.remove(geoObject);
+        }
+    });
 }

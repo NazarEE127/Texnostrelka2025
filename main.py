@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, flash, jsonify
+from flask import Flask, render_template, request, redirect, flash, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import desc
 from flask_login import UserMixin, LoginManager, login_user, login_required, logout_user, current_user
@@ -7,6 +7,9 @@ from werkzeug.utils import secure_filename
 import os
 from instance.DataBase import *
 import requests
+import ast
+import gpxpy
+import simplekml
 
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'dng', 'raw', 'ARW', 'mp4', 'avi', 'mov'}
@@ -19,6 +22,7 @@ app.secret_key = '79d77d1e7f9348c59a384d4376a9e53f'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///main.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['UPLOAD_FOLDER'] = 'static/img'
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 db.init_app(app)
 manager = LoginManager(app)
 
@@ -111,6 +115,7 @@ def logout():
 @login_required
 def add_route():
     if request.method == 'POST':
+        print("POST")
         title = request.form.get('title')
         description = request.form.get('description')
         public = 1 if request.form.get('public') else 0
@@ -120,8 +125,27 @@ def add_route():
             status = 1
         elif private == 1:
             status = 0
-        route = Routes(title=title, description=description, status=status, user_id=current_user.id, rating=0)
+        files = request.files.getlist('files')
+        route_coords = ast.literal_eval(request.form.get('routeCoordinates'))
+        coords_text = ""
+        for p in route_coords:
+            coords_text += f"{p[0]};{p[1]}@"
+        coords_text = coords_text[:-1]
+
+        route = Routes(title=title, description=description, status=status, user_id=current_user.id, rating=0, route_coords=coords_text)
         db.session.add(route)
+        db.session.commit()
+        db.session.refresh(route)
+        r = Routes.query.filter_by(id=route.id).first()
+        text = ''
+        for file in files:
+            file.save(os.path.join('static/img', file.filename))
+            photo = Photos(route_id=route.id, name=file.filename)
+            db.session.add(photo)
+            db.session.commit()
+            db.session.refresh(photo)
+            text += str(photo.id) + "|"
+        r.photos_id = text[:-1]
         db.session.commit()
         flash("Маршрут успешно создан!")
         return redirect("/")
@@ -152,7 +176,15 @@ def evaluate_route(id):
 @app.route('/all_routes')
 def all_routes():
     routes = Routes.query.all()
-    return render_template("all_routes.html", routes=routes)
+    photos = {}
+    for r in routes:
+        ps = Photos.query.filter(Photos.route_id == r.id).all()
+        for i in range(len(ps)):
+            if r.id in photos.keys():
+                photos[r.id].append(ps[i].name)
+            else:
+                photos[r.id] = [ps[i].name]
+    return render_template("all_routes.html", routes=routes, photos=photos)
 
 
 @app.route('/route/<int:id>')
@@ -160,16 +192,20 @@ def route(id):
     route = Routes.query.filter(Routes.id == id).first()
     comments = Comments.query.filter(Comments.route_id == id).all()
     user = Users.query.filter(Users.id == route.user_id).first()
-    return render_template("route.html", user=user, route=route, comments=comments)
+    photos = Photos.query.filter(Photos.route_id == route.id).all()
+    return render_template("route.html", user=user, route=route, comments=comments, photos=photos)
 
 
 @app.route('/delete_route/<int:id>')
 @login_required
 def del_route(id):
     route = Routes.query.filter_by(id=id).first()
+    photos = Photos.query.filter(Photos.route_id == route.id).all()
     if current_user.id == route.user_id:
         try:
             db.session.delete(route)
+            for photo in photos:
+                db.session.delete(photo)
             db.session.commit()
             flash('Маршрут удалён!')
             return redirect("/")
@@ -186,7 +222,6 @@ def map():
     if request.method == 'POST':
         data = request.json
         points = data['points']
-        print(data)
         # Запрос к Яндекс Геокодеру для получения координат
         geocode_url = "https://geocode-maps.yandex.ru/1.x/"
         api_key = "fc583f53-ce4b-49a8-9926-2cc9b2ac3082"
@@ -196,10 +231,8 @@ def map():
             str_point = f"{point[1]},{point[0]}"
             response = requests.get(geocode_url, params={'apikey': api_key, 'geocode': str_point, 'format': 'json'})
             data = response.json()
-            print(data)
             coords = data['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['Point']['pos'].split()
             coordinates.append([float(coords[1]), float(coords[0])])  # [latitude, longitude]
-        print(coordinates)
         return jsonify(coordinates)
 
     return render_template("map.html")
@@ -235,6 +268,64 @@ def edit_route(id):
     else:
         flash('Нет доступа')
         return redirect('/')
+
+
+@app.route('/export/gpx/<int:id>', methods=["POST", "GET"])
+def export_gpx(id):
+    # Создаем GPX файл
+    gpx = gpxpy.gpx.GPX()
+    route = Routes.query.filter_by(id=id).first()
+    route_coords = route.route_coords.split("@")
+    i = 1
+    for point_coords in route_coords:
+        coords = point_coords.split(";")
+        gpx.waypoints.append(gpxpy.gpx.GPXWaypoint(latitude=float(coords[0]), longitude=float(coords[1]), name=f'Точка {i}'))
+        i += 1
+
+    # Сохраняем GPX файл во временный файл
+    gpx_file_path = 'output.gpx'
+    if not os.path.exists(gpx_file_path):
+        return 404
+    with open(gpx_file_path, 'w') as f:
+        f.write(gpx.to_xml())
+
+    return send_file(gpx_file_path, as_attachment=True)
+
+
+@app.route('/export/kml/<int:id>', methods=["POST", "GET"])
+def export_kml(id):
+    # Создаем KML файл
+    kml = simplekml.Kml()
+    route = Routes.query.filter_by(id=id).first()
+    route_coords = route.route_coords.split("@")
+    i = 1
+    for point_coords in route_coords:
+        coords = point_coords.split(";")
+        kml.newpoint(name=f"Точка {i}", coords=[(float(coords[1]), float(coords[0]))])  # (longitude, latitude)
+
+    # Сохраняем KML файл во временный файл
+    kml_file_path = 'output.kml'
+    kml.save(kml_file_path)
+
+    return send_file(kml_file_path, as_attachment=True)
+
+
+@app.route('/export/kmz/<int:id>', methods=["POST", "GET"])
+def export_kmz(id):
+    # Создаем KML файл
+    kml = simplekml.Kml()
+    route = Routes.query.filter_by(id=id).first()
+    route_coords = route.route_coords.split("@")
+    i = 1
+    for point_coords in route_coords:
+        coords = point_coords.split(";")
+        kml.newpoint(name=f"Точка {i}", coords=[(float(coords[1]), float(coords[0]))])  # (longitude, latitude)
+
+    # Сохраняем KMZ файл во временный файл
+    kmz_file_path = 'output.kmz'
+    kml.savekmz(kmz_file_path)
+
+    return send_file(kmz_file_path, as_attachment=True)
 
 
 if __name__ == "__main__":

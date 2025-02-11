@@ -21,8 +21,8 @@ class Routes(db.Model, UserMixin):
     rating = db.Column(db.String)
     status = db.Column(db.Integer)
     count_marks = db.Column(db.Integer, default=0)
-#    photos_id = db.Column(db.String)
-#    on_map = db.Column(db.String)
+    photos_id = db.Column(db.String)
+    route_coords = db.Column(db.String)
 
 
 class Comments(db.Model, UserMixin):
@@ -46,7 +46,7 @@ class History(db.Model, UserMixin):
 class Photos(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     route_id = db.Column(db.Integer)
-    path = db.Column(db.String)
+    name = db.Column(db.String)
 
 
 class Visit(db.Model, UserMixin):
