@@ -139,7 +139,7 @@ def evaluate_route(id):
         try:
             cnt_mrks = route.count_marks
             route.count_marks += 1
-            route.rating = ((int(route.rating)*int(cnt_mrks))+float(mark))/(cnt_mrks+1)
+            route.rating = ((float(route.rating)*int(cnt_mrks))+float(mark))/(cnt_mrks+1)
             db.session.add(comment)
             db.session.commit()
             flash("Оценка успешно сохранена!")

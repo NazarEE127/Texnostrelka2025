@@ -35,32 +35,37 @@ img.displayed {
 <h2>{{route.title}} </h2>
 
 <img src="static/img/photo.png" style="text-align: right;">
-
 <hr class="my-4">
-<br>
+<p style="display: flex;justify-content: flex-end;"><em>Рейтинг: <b>{{ route.rating }}</b></em></p>
+<div style="display: flex;justify-content: flex-end;">
+<p><em>Отзывы: </em></p>
+{% if comments|length > 0 %}
+ <ul>
+{% for i in range(comments|length) %}
+<li>Автор: {{comments[i].text}}</li>
+{% endfor %}
+ </ul>
+{% else %}
+<p>Пока нет отзывов</p>
+{% endif %}
+</div>
 <em>Описание: </em>
 <p>{{ route.description }}</p>
 
-<em>Статус альбома: </em>
 {% if route.status == 1 %}
-<p>Публичный альбом</p>
+<p><em>Статус альбома: <b>Публичный альбом</b></em></p>
 {% else %}
-<p>Приватный альбом</p>
+<p><em>Статус альбома: <b>Приватный альбом</b></em></p>
 {% endif %}
 
 <em>Владелец: </em>
 
 <a href="/profile/{{user.id}}"><em>{{user.username}}</em></a><br>
 <br>
+<div id="map" style="width: 400px; height: 400px"></div>
 
-<em>Отзывы: </em>
-{% if comments|length > 0 %}
-{% for i in range(comments|length) %}
-<p>{{comments[i].text}}</p>
-{% endfor %}
-{% else %}
-<p>Пока нет отзывов</p>
-{% endif %}
+
+
 <br>
 
 <hr class="my-4">
