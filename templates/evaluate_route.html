@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+
+{% block title %}
+Оценка маршрута
+{% endblock %}
+
+{% block main %}
+<article class="my-3" id="input-group">
+      <div class="container">
+          <form method="post" class="needs-validation" enctype="multipart/form-data">
+            <label for="comment">Комментарий</label>
+            <textarea class="form-control" id="comment" name="comment" rows="3"></textarea>
+              <label for="mark">Оценка</label>
+            <input type="number" min="0" max="5" step="0.1" class="form-control" id="mark" name="mark" required>
+            <input type="submit" class="btn btn-primary"  style="text-align: center;" value="Оценить">
+          </form>
+      </div>
+
+</article>
+
+
+{% endblock %}

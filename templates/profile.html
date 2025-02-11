@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Профиль
+{% endblock %}
+
+
+
+{% block main %}
+    <br>
+    <div style="display:table">
+    <img style="dislpay:table-row; border-radius:30px" src="/static/img/{{user.ava}}" alt="ава" width="400" height="400">
+        <div style="display:table-cell">
+            <h4>Логин: <em>{{user.username}}</em></h4>
+            <h4>Email: <em>{{user.email}}</em></h4>
+            <h4>Мои маршруты</h4>
+            {% if routes|length > 0 %}
+            {% for i in range(routes|length) %}
+            <div><a href="/route/{{ routes[i].id }}" ><h5>{{ routes[i].title }}</h5></a></div>
+            {% endfor %}
+            {% else %}
+            <p>У вас ещё нет альбомов</p>
+            {% endif %}
+            </div>
+    <br>
+        </div>
+
+
+
+{% endblock %}

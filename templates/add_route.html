@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Добавление маршрута
+{% endblock %}
+
+{% block main %}
+<form method="POST">
+    <div class="form-group">
+        <label for="title">Название маршрута</label>
+        <input type="text" class="form-control" id="title" name="title" required>
+    </div>
+    <div class="form-group">
+        <label for="description">Описание маршрута</label>
+        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+    </div>
+    <div class="form-group">
+        <label for="public">Публичный</label>
+        <input type="checkbox" id="public" name="public">
+        <label for="private">Приватный</label>
+        <input type="checkbox" id="private" name="private">
+    </div>
+    <button type="submit" class="btn btn-success">Добавить маршрут</button>
+</form>
+{% endblock %}

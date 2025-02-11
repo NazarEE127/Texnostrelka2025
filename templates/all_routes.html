@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Все маршруты
+{% endblock %}
+
+
+
+{% block main %}
+<style>
+.map {
+    padding: 40px 0;
+    text-align: center;
+}
+
+.container-m {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+h2 {
+    font-size: 35px;
+    font-family: 'Arial Narrow Bold', sans-serif;
+    margin-bottom: 20px;
+}
+</style>
+
+  <h2>Маршруты</h2>
+  {% if routes|length > 0 %}
+  <div class="row row-cols-1 row-cols-sm-6 row-cols-md-6 g-3">
+      {% for i in range(routes|length) %}
+        {% if routes[i].status == 1 %}
+        <div class="col">
+          <div class="card shadow-sm">
+            <div><h4>{{ routes[i].title }}</h4></div>
+            <a href="/route/{{ routes[i].id }}"><img src="static/ico/маршрут.png" class="card-img-top" width="50%" height="225"></a>
+            <div class="card-body">
+              <p class="card-text">{{routes[i].description}}</p>
+              <p class="card-text">Рейтинг: <b>{{routes[i].rating}}</b></p>
+              <div class="d-flex justify-content-between align-items-center">
+                {% if routes[i].status == 1 %}
+                <div class="btn-group">
+                  <a href="/route/{{ routes[i].id }}"><button type="button" class="btn btn-sm btn-outline-warning">Открыть</button></a>
+                  {% if current_user.admin == 1 %}
+                  <a href="/edit_route/{{ routes[i].id }}"><button type="button" class="btn btn-sm btn-outline-success">Редактировать</button></a>
+                  {% endif %}
+                </div>
+                <div align='right'></div>
+                {% else %}
+                <div class="btn-group">
+                  <p class="card-text">Маршрут приватный</p>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+      {% endfor %}
+    {% else %}
+            <p>Пока у нас нет маршрутов :/</p>
+            {% endif %}
+      </div>
+
+
+
+{% endblock %}

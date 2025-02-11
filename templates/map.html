@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}
+MAP
+{% endblock %}
+
+{% block main %}
+
+    <h1>Построить маршрут</h1>
+    <div id="map" style="width: 600px; height: 400px"></div>
+    <button id="myButton">Построить маршрут</button>
+    <div id="pointsList"></div>
+    <script type="module" src="static/js/script.js"></script>
+
+
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Регистрация
+{% endblock %}
+
+{% block main %}
+<section class="text-center container">
+    <div class="col-lg-6 col-md-8 mx-auto">
+        <h1>Регистрация</h1>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="alert alert-danger">
+            {% for message in messages %}
+            <h2>{{ message }}</h2>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        <form class="needs-validation" method="post" enctype="multipart/form-data">
+            <input type="email" name="email" id="email" class="form-control" placeholder="Введите почту"
+                   required=""><br>
+            <input type="text" name="username" id="username" class="form-control" placeholder="Введите логин"
+                   required=""><br>
+            <input type="password" name="password" id="password" class="form-control" placeholder="Введите пароль"
+                   required=""><br>
+            <input type="password" name="password2" id="password2" class="form-control" placeholder="Подтвердите пароль"
+                   required=""><br>
+            <input type="file" class="form-control" name="file" placeholder="Выберите аватарку" required=""><br>
+
+            <input type="submit" class="btn btn-primary" value="Регистрация">
+        </form>
+    </div>
+</section>
+
+{% endblock %}

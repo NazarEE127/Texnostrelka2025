@@ -1,0 +1,129 @@
+<!doctype html>
+<style>
+  .md {
+  margin-right: 30px
+  }
+  .main-name{
+  font-size: 25px;
+  margin-right: 20px;
+  color: #FFFFFF;
+  }
+  .bg{
+  background-color: #009999
+  }
+</style>
+
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        #map { height: 600px; }
+        .point {
+            margin-bottom: 10px;
+        }
+    </style>
+    <title>{% block title %}{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link href="https://getbootstrap.com/docs/5.3/assets/css/docs.css" rel="stylesheet">
+
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=fc583f53-ce4b-49a8-9926-2cc9b2ac3082&lang=ru_RU"></script>
+    <script type="module" src="static/js/script.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  </head>
+  <body>
+
+
+  <header class="p-3 mb-3 bg border-bottom">
+    <div class="container">
+      <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+
+        <a href="/"><img src="{{ url_for('static', filename='ico/ico.png') }}" width="45" height="45" class="rounded-circle md" style="box-shadow:0px 0px 19px rgb(255 255 255 / 60%)"></a><!--class="rounded-circle"-->
+
+        <a href="/" class="nav-link px-2 link-light"><font face="Franklin Gothic Medium" class="main-name">Маршрутизатор</font></a>
+
+        <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+          <!-- <li><a href="/" class="nav-link px-2 link-light">Главная</a></li>  -->
+          <li><a href="/all_routes" class="nav-link px-2 link-light">Маршруты</a></li>
+          {% if current_user.is_authenticated %}
+          <li><a href="/add_route" class="nav-link px-2 link-light">Добавить маршрут</a></li>
+
+          {% endif %}
+
+        </ul>
+
+
+        {% if current_user.is_authenticated %}
+          <!--<h5 class="text-end text-light" style="margin: 0px 10px 5px 5px">{{current_user.username}}</h5>margin-right:10px margin-top:5px-->
+          <div class="dropdown text-end">
+            <a href="#" class="d-block link-light text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+              <!-- <img src="{{ url_for('static', filename='{{current_user.ava}}') }}" alt="ава" width="32" height="32" class="rounded-circle" style="box-shadow:0px 0px 19px rgb(255 255 255 / 25%)">  -->
+              <img src="{{ url_for('static', filename='img/{{current_user.ava}}') }}" alt="ава" width="32" height="32" class="rounded-circle" style="box-shadow:0px 0px 19px rgb(255 255 255 / 25%)">
+
+            </a>
+            <ul class="dropdown-menu text-small" style="">
+              <li><a class="dropdown-item" href="/profile">Профиль</a></li>
+              <li><a class="dropdown-item" href="/map">Map</a></li>
+              <li><a class="dropdown-item" href="/logout">Выйти</a></li>
+            </ul>
+          </div>
+        {% else %}
+          <div class="btn-group">
+            <a href="/sign-up" class="btn text-white" style="background-color: #00BC00">Зарегистрироваться</a>
+            <a href="/login" class="btn btn btn-light text-primary" style="border: 1px solid #FFFFFF">Войти</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+    <div class="container">
+
+{% with messages = get_flashed_messages() %}
+        {% if messages %}
+      {% for message in messages %}
+          <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <h2>{{ message }}</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+  </div>
+<div class="container">
+  {% block main %}
+
+      {% endblock %}
+</div>
+    </div>
+
+
+  <div class="container">
+    <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+      <div class="col-md-4 d-flex align-items-center">
+        <!-- <a href="/" class="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1">
+          <svg class="bi" width="30" height="24"></svg>
+        </a>
+        <a href="https://vk.com/Wiquzix"><img src="/static/img/vk.png" height="30px" width="30px"></a>
+        <a href="https://t.me/Wiquzix"><img src="/static/img/telegram.png" height="30px" width="30px"></a>
+        <img src="/static/img/email.jpg" height="30px" width="40px">   -->
+        <span class="mb-3 mb-md-0 text-muted">  Wiquix@mail.ru   ©2025 Wiquix, Inc
+        </span>
+      </div>
+    </footer>
+  </div>
+
+
+
+
+
+  <script src="{{ url_for('static',filename='js/bootstrap.bundle.min.js') }}"></script>
+
+    <script src="/docs/5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+
+
+
+
+  </body>
+</html>
