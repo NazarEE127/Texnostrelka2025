@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}
+История правок
+{% endblock %}
+
+
+
+{% block main %}
+    <br>
+    <div style="display:table">
+        <div style="display:table-cell">
+            <h2>Последнее изменение:</h2>
+            <h3>Название:</h3>
+            {% if no_edit_title == 0 %}
+            <h4><span>{{just_text_title}}</span><span style="color:red;">{{red_text_title}}</span>     ---->       <span><span>{{just_text_title}}</span><span style="color:green;">{{green_text_title}}</span></span></h4>
+            {% else %}
+            <h4>Нет изменений</h4>
+            {% endif %}
+            <h3>Описание:</h3>
+            {% if no_edit_description == 0 %}
+            <h4><span>{{just_text_description}}</span><span style="color:red;">{{red_text_description}}</span>     ---->       <span><span>{{just_text_description}}</span><span style="color:green;">{{green_text_description}}</span></span></h4>
+            {% else %}
+            <h4>Нет изменений</h4>
+            {% endif %}
+            {% if past_history|length > 0 %}
+            <h3>Старые изменения:</h3>
+            {% for i in range(past_history|length) %}
+            <h5>{{ i+1 }})Название было: {{ past_history[i].title }}</h5>
+            <h5>{{ i+1 }})Описание было: {{ past_history[i].description }}</h5>
+            {% endfor %}
+            {% endif %}
+        </div>
+    <br>
+        </div>
+
+
+
+{% endblock %}

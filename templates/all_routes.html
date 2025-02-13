@@ -35,7 +35,6 @@ h2 {
             <div><h4>{{ routes[i].title }}</h4></div>
             <a href="/route/{{ routes[i].id }}"><img src="static/img/{{ photos[routes[i].id][0] }}" class="card-img-top" width="50%" height="225"></a>
             <div class="card-body">
-              <p class="card-text">{{routes[i].description}}</p>
               <p class="card-text">Рейтинг: <b>{{routes[i].rating}}</b></p>
               <div class="d-flex justify-content-between align-items-center">
                 {% if routes[i].status == 1 %}

@@ -9,22 +9,42 @@
 {% block main %}
     <br>
     <div style="display:table">
-    <img style="dislpay:table-row; border-radius:30px" src="/static/img/{{user.ava}}" alt="ава" width="400" height="400">
+    <img style="dislpay:table-row; border-radius:30px" src="/static/img/{{user.ava}}" alt="ава" width="150" height="150">
         <div style="display:table-cell">
             <h4>Логин: <em>{{user.username}}</em></h4>
-            <h4>Email: <em>{{user.email}}</em></h4>
-            <h4>Мои маршруты</h4>
-            {% if routes|length > 0 %}
-            {% for i in range(routes|length) %}
-            <div><a href="/route/{{ routes[i].id }}" ><h5>{{ routes[i].title }}</h5></a></div>
-            {% endfor %}
-            {% else %}
-            <p>У вас ещё нет альбомов</p>
-            {% endif %}
-            </div>
+            <h4>Email: <em>{{user.email}}</em>(подтверждён/не подтверждён)</h4>
+
+        <a href="/edit_data/{{ current_user.id }}" class="btn btn-primary">Изменить данные</a>
+        <a href="/delete_account/{{ current_user.id }}" class="btn btn-danger">Удалить аккаунт</a>
+
+        </div>
     <br>
         </div>
-
+    <div style="display: flex;justify-content: flex-end;">
+            <p><h4>Мои маршруты</h4></p>
+                <br>
+            {% if routes|length > 0 %}
+                {% if routes|length > 3 %}
+            {% for i in range(3) %}
+            <p><ul>
+                <li><a href="/route/{{ routes[i].id }}"><h5>{{ routes[i].title }}</h5></a></li>
+            {% endfor %}
+                <a href="/all_route/{{ current_user.id }}" class="btn btn-secondary">Показть все</a>
+                </ul></p>
+                {% else %}
+                {% for i in range(routes|length) %}
+                <ul>
+                    <li><a href="/route/{{ routes[i].id }}" ><h5>{{ routes[i].title }}</h5></a></li>
+                </ul>
+            {% endfor %}
+                {% endif %}
+            {% else %}
+            <p>У вас ещё нет маршрутов</p>
+            {% endif %}
+            </div>
+<!--<a href="/comments/{{ current_user.id }}" class="btn btn-warning" style="float: right;">Мои комментарии</a>-->
+<br>
+<br>
 
 
 {% endblock %}

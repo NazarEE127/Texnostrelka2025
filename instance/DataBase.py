@@ -40,7 +40,7 @@ class History(db.Model, UserMixin):
     rating = db.Column(db.String)
     status = db.Column(db.Integer)
     route_id = db.Column(db.Integer)
-#    relevance = db.Column(db.Integer)
+    last = db.Column(db.Integer)
 
 
 class Photos(db.Model, UserMixin):

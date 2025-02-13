@@ -1,28 +1,3 @@
-//
-//import { YMap, YMapDefaultSchemeLayer } from './lib/ymaps.js'
-//
-//const map = new ymaps.Map(
-//    document.getElementById('map'),{
-//                   center: [55.76, 37.64], // координаты центра карты
-//                   zoom: 10 // уровень масштабирования
-//               });
-//
-//               // Проверка координат перед добавлением маркера
-//               var coordinates = [55.76, 37.64]; // пример координат
-//
-//               if (coordinates && coordinates.length === 2) {
-//                   var myPlacemark = new ymaps.Placemark(coordinates, {
-//                       balloonContent: 'Это мой маркер!'
-//                   });
-//
-//                   map.geoObjects.add(myPlacemark);
-//               } else {
-//                   console.error('Координаты не определены или имеют неправильный формат');
-//               }
-//
-//map.addChild(new YMapDefaultSchemeLayer());
-
-
 let map;
 let placemarks = [];
 let points = [];

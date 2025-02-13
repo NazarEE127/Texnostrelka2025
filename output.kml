@@ -8,13 +8,13 @@
             </Point>
         </Placemark>
         <Placemark id="5">
-            <name>Точка 1</name>
+            <name>Точка 2</name>
             <Point id="4">
                 <coordinates>92.941577,55.990348,0.0</coordinates>
             </Point>
         </Placemark>
         <Placemark id="7">
-            <name>Точка 1</name>
+            <name>Точка 3</name>
             <Point id="6">
                 <coordinates>92.972326,55.993207,0.0</coordinates>
             </Point>

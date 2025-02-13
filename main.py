@@ -187,13 +187,24 @@ def all_routes():
     return render_template("all_routes.html", routes=routes, photos=photos)
 
 
-@app.route('/route/<int:id>')
+@app.route('/route/<int:id>', methods=['GET', 'POST'])
 def route(id):
     route = Routes.query.filter(Routes.id == id).first()
     comments = Comments.query.filter(Comments.route_id == id).all()
     user = Users.query.filter(Users.id == route.user_id).first()
     photos = Photos.query.filter(Photos.route_id == route.id).all()
-    return render_template("route.html", user=user, route=route, comments=comments, photos=photos)
+    if request.method == 'GET':
+        visit = Visit.query.filter(Visit.route_id == route.id and Visit.user_id == current_user.id).all()
+        if len(visit) == 0 or visit is None:
+            visit = 0
+        else:
+            visit = 1
+        return render_template("route.html", user=user, route=route, comments=comments, photos=photos, visit=visit)
+    visit = Visit(user_id=current_user.id, route_id=route.id)
+    db.session.add(visit)
+    db.session.commit()
+    visit = 1
+    return render_template("route.html", user=user, route=route, comments=comments, photos=photos, visit=visit)
 
 
 @app.route('/delete_route/<int:id>')
@@ -217,6 +228,31 @@ def del_route(id):
         return redirect("/")
 
 
+@app.route('/delete_account/<int:id>')
+@login_required
+def del_account(id):
+    user = Users.query.filter_by(id=id).first()
+    try:
+        logout_user()
+        db.session.delete(user)
+        db.session.commit()
+        flash('Аккаунт удалён!')
+        return redirect("/")
+    except Exception as e:
+        flash('Ошибка при удалении')
+        return redirect("/")
+
+
+@app.route('/get_coords/<int:id>', methods=['GET', 'POST'])
+def get_coords(id):
+    route = Routes.query.filter_by(id=id).first()
+    route_coords = route.route_coords.split("@")
+    res = []
+    for point_coords in route_coords:
+        res.append(point_coords.split(";"))
+    return jsonify(res)
+
+
 @app.route('/map', methods=['GET', 'POST'])
 def map():
     if request.method == 'POST':
@@ -238,6 +274,29 @@ def map():
     return render_template("map.html")
 
 
+@app.route('/edit_data/<int:id>', methods=["POST", "GET"])
+def edit_data(id):
+    user = Users.query.filter_by(id=id).first()
+    if current_user.is_authenticated and (current_user.id == user.id or current_user.admin == 1):
+        if request.method == "GET":
+            return render_template("edit_data.html", user=user)
+        if request.method == "POST":
+            email = request.form.get('email')
+            username = request.form.get('username')
+            try:
+                user.email = email
+                user.username = username
+                db.session.commit()
+                flash("Данные изменены")
+                return redirect('/profile')
+            except:
+                flash("Возникла ошибка при изменении данных")
+                return redirect('/profile')
+    else:
+        flash('Нет доступа')
+        return redirect('/')
+
+
 @app.route('/edit_route/<int:id>', methods=["POST", "GET"])
 def edit_route(id):
     route = Routes.query.filter_by(id=id).first()
@@ -256,6 +315,12 @@ def edit_route(id):
             else:
                 status = 0
             try:
+                history_route = History(title=route.title, description=route.description, user_id=route.user_id,
+                                        rating=route.rating, status=route.status, route_id=route.id, last=1)
+                past_history = History.query.filter(History.route_id == id and History.last == 1).first()
+                if not (past_history is None):
+                    past_history.last = 0
+                db.session.add(history_route)
                 route.title = title
                 route.description = description
                 route.status = status
@@ -268,6 +333,62 @@ def edit_route(id):
     else:
         flash('Нет доступа')
         return redirect('/')
+
+
+@app.route('/history_route/<int:id>', methods=["POST", "GET"])
+def history_route(id):
+    route = Routes.query.filter_by(id=id).first()
+    last_history = History.query.filter(History.route_id == id and History.last == 1).first()
+    past_history = History.query.filter(History.route_id == id and History.last == 0).all()
+    no_edit_title = 0
+    no_edit_description = 0
+    red_text_title = ""
+    green_text_title = ""
+    just_text_title = ""
+    red_text_description = ""
+    green_text_description = ""
+    just_text_description = ""
+    if not(last_history is None):
+        if route.title != last_history.title:
+            for i in range(max(len(route.title), len(last_history.title))):
+                try:
+                    if route.title[i] == last_history.title[i]:
+                        just_text_title += route.title[i]
+                    else:
+                        green_text_title += route.title[i]
+                        red_text_title += last_history.title[i]
+                except Exception as e:
+                    if len(route.title) > len(last_history.title):
+                        green_text_title += route.title[i:]
+                    else:
+                        red_text_title += last_history.title[i:]
+                    break
+        else:
+            no_edit_title = 1
+        if route.description != last_history.description:
+            for i in range(max(len(route.description), len(last_history.description))):
+                try:
+                    if route.description[i] == last_history.description[i]:
+                        just_text_description += route.description[i]
+                    else:
+                        green_text_description += route.description[i]
+                        red_text_description += last_history.description[i]
+                except Exception as e:
+                    if len(route.description) > len(last_history.description):
+                        green_text_description += route.description[i:]
+                    else:
+                        red_text_description += last_history.description[i:]
+                    break
+        else:
+            no_edit_description = 1
+    else:
+        no_edit_title = 1
+        no_edit_description = 1
+    return render_template("history.html", just_text_title=just_text_title, red_text_title=red_text_title,
+                                green_text_title=green_text_title, no_edit_title=no_edit_title,
+                                just_text_description=just_text_description, red_text_description=red_text_description,
+                                green_text_description=green_text_description, no_edit_description=no_edit_description,
+                                past_history=past_history)
 
 
 @app.route('/export/gpx/<int:id>', methods=["POST", "GET"])
@@ -302,6 +423,7 @@ def export_kml(id):
     for point_coords in route_coords:
         coords = point_coords.split(";")
         kml.newpoint(name=f"Точка {i}", coords=[(float(coords[1]), float(coords[0]))])  # (longitude, latitude)
+        i += 1
 
     # Сохраняем KML файл во временный файл
     kml_file_path = 'output.kml'
@@ -320,6 +442,7 @@ def export_kmz(id):
     for point_coords in route_coords:
         coords = point_coords.split(";")
         kml.newpoint(name=f"Точка {i}", coords=[(float(coords[1]), float(coords[0]))])  # (longitude, latitude)
+        i += 1
 
     # Сохраняем KMZ файл во временный файл
     kmz_file_path = 'output.kmz'

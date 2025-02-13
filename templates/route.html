@@ -36,34 +36,42 @@ img.displayed {
 <div class="bd-example-snippet bd-code-snippet"><div class="bd-example m-0 border-0">
         <div id="carouselExampleCaptions" class="carousel slide" data-bs-ride="carousel">
           <div class="carousel-indicators">
-              {% for i in range(photos|length) %}
-            <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="{{ i }}" class="active" aria-label="Slide 1" aria-current="true"></button>
+              <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="{{ 0 }}" class="active" aria-label="Slide 1" aria-current="true"></button>
+              {% for i in range(1, photos|length) %}
+            <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="{{ i }}" aria-label="Slide {{ i }}" aria-current="true"></button>
               {% endfor %}
           </div>
           <div class="carousel-inner">
-              {% for i in range(photos|length) %}
-            <div class="carousel-item active">
-              <svg class="bd-placeholder-img bd-placeholder-img-lg d-block w-100" width="800" height="600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: First slide" preserveAspectRatio="xMidYMid slice" focusable="false"><title>Placeholder</title><rect width="100%" height="125%" fill="#ebfaf8" data-darkreader-inline-fill="" style="--darkreader-inline-fill: #ebfaf8;"></rect><text x="50%" y="50%" fill="#555" dy=".3em" data-darkreader-inline-fill="" style="--darkreader-inline-fill: #ebfaf8;">First slide</text></svg>
+              <div class="carousel-item active">
+              <svg class="bd-placeholder-img bd-placeholder-img-lg d-block w-100" width="600" height="400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: First slide" preserveAspectRatio="xMidYMid slice" focusable="false"><title>Placeholder</title><rect width="100%" height="125%" fill="#ebfaf8" data-darkreader-inline-fill="" style="--darkreader-inline-fill: #ebfaf8;"></rect><text x="50%" y="50%" fill="#555" dy=".3em" data-darkreader-inline-fill="" style="--darkreader-inline-fill: #ebfaf8;">First slide</text></svg>
               <div class="carousel-caption d-none d-md-block">
-                <img src="/static/img/{{ photos[i].name }}" width="800" height="600">
+                <img src="/static/img/{{ photos[0].name }}" width="600" height="400">
+              </div>
+            </div>
+              {% for i in range(photos|length-1) %}
+            <div class="carousel-item">
+              <svg class="bd-placeholder-img bd-placeholder-img-lg d-block w-100" width="600" height="400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: First slide" preserveAspectRatio="xMidYMid slice" focusable="false"><title>Placeholder</title><rect width="100%" height="125%" fill="#ebfaf8" data-darkreader-inline-fill="" style="--darkreader-inline-fill: #ebfaf8;"></rect><text x="50%" y="50%" fill="#555" dy=".3em" data-darkreader-inline-fill="" style="--darkreader-inline-fill: #ebfaf8;">First slide</text></svg>
+              <div class="carousel-caption d-none d-md-block">
+                <img src="/static/img/{{ photos[i+1].name }}" width="600" height="400">
               </div>
             </div>
           </div>
             {% endfor %}
           <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="prev"  >
             <span class="carousel-control-prev-icon" aria-hidden="true" ></span>
-            <span class="visually-hidden" >Previous</span>
+            <span class="visually-hidden">Previous</span>
           </button>
           <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="next" >
-            <span id="buttun_sq" class="carousel-control-next-icon" aria-hidden="true" ></span>
+            <span id="carousel-control-next-icon" class="carousel-control-next-icon" aria-hidden="true" ></span>
             <span class="visually-hidden"> Next</span>
           </button>
         </div>
         </div></div>
 
       </div>
-<img src="static/img/photo.png" style="text-align: right;">
+
 <hr class="my-4">
+
 <p style="display: flex;justify-content: flex-end;"><em>Рейтинг: <b>{{ route.rating }}</b></em></p>
 <div style="display: flex;justify-content: flex-end;">
 <p><em>Отзывы: </em></p>
@@ -91,18 +99,23 @@ img.displayed {
 <a href="/profile/{{user.id}}"><em>{{user.username}}</em></a><br>
 <br>
 <div id="map" style="width: 400px; height: 400px"></div>
-
-
-
 <br>
-
 <hr class="my-4">
 {% if current_user.is_authenticated %}
+{% if visit == 0 %}
+<form method="POST">
+<input type="submit" class="btn btn-info" value="Я тут был" alt="Я тут был">
+</form>
+<br>
+{% else %}
+<p style="color:orange;">Вы посещали этот маршрут</p>
+{% endif %}
 <a href="/export/gpx/{{ route.id }}" class="btn btn-info">Скачать GPX</a>
 <a href="/export/kml/{{ route.id }}" class="btn btn-info">Скачать KML</a>
 <a href="/export/kmz/{{ route.id }}" class="btn btn-info">Скачать KMZ</a>
 <a href="/evaluate_route/{{ route.id }}" class="btn btn-warning">Оценить</a>
 {% if current_user.id == route.user_id %}
+<a href="/history_route/{{ route.id }}" class="btn btn-warning">История правок</a>
     <a href="/edit_route/{{ route.id }}" class="btn btn-success">Редактировать</a>
     <a href="/delete_route/{{ route.id }}" class="btn btn-danger">Удалить</a>
 {% endif %}
@@ -110,6 +123,8 @@ img.displayed {
 <p style="color:red;">Для действий с маршрутом войдите в аккаунт!</p>
 {% endif %}
 
-
-
+<div class="form-group">
+        <input type="hidden" id="current_id" name="current_id" value="{{ route.id }}">
+</div>
+<script type="module" src="/static/js/script2.js"></script>
 {% endblock %}
