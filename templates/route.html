@@ -110,12 +110,20 @@ img.displayed {
 {% else %}
 <p style="color:orange;">Вы посещали этот маршрут</p>
 {% endif %}
-<a href="/export/gpx/{{ route.id }}" class="btn btn-info">Скачать GPX</a>
-<a href="/export/kml/{{ route.id }}" class="btn btn-info">Скачать KML</a>
-<a href="/export/kmz/{{ route.id }}" class="btn btn-info">Скачать KMZ</a>
+<div class="btn-group">
+          <button class="btn btn-info dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Скачать
+            </button>
+          <ul class="dropdown-menu dropdown-menu-end" style>
+<!--            <li><a class="dropdown-item" href="/export/png/{{ route.id }}">PNG</a></li>-->
+            <li><a class="dropdown-item" href="/export/gpx/{{ route.id }}">GPX</a></li>
+            <li><a class="dropdown-item" href="/export/kml/{{ route.id }}">KML</a></li>
+            <li><a class="dropdown-item" href="/export/kmz/{{ route.id }}">KMZ</a></li>
+          </ul>
+        </div>
 <a href="/evaluate_route/{{ route.id }}" class="btn btn-warning">Оценить</a>
 {% if current_user.id == route.user_id %}
-<a href="/history_route/{{ route.id }}" class="btn btn-warning">История правок</a>
+<a href="/history_route/{{ route.id }}" class="btn btn-primary">История правок</a>
     <a href="/edit_route/{{ route.id }}" class="btn btn-success">Редактировать</a>
     <a href="/delete_route/{{ route.id }}" class="btn btn-danger">Удалить</a>
 {% endif %}

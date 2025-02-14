@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Редактирование комментария
+{% endblock %}
+
+
+
+{% block main %}
+
+    <br>
+    <h3 id="header-elem">Редактирование комментария</h3>
+    <hr class="my-4">
+    <form method="post" enctype="multipart/form-data" id="form">
+    <div class="form-group">
+        <label for="text">Текст комментария</label>
+        <textarea class="form-control" id="text" name="text" rows="3">{{ comment.text }}</textarea>
+    </div>
+<input type="submit" class="btn btn-primary" value="Отправить">
+    </form>
+
+
+{% endblock %}

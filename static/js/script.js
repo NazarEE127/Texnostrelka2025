@@ -14,11 +14,13 @@ function init() {
     // Обработчик клика по карте
     map.events.add('click', function (e) {
         const coords = e.get('coords');
+        console.log(coords)
         addPoint(coords);
     });
 
     document.getElementById('myButton').onclick = getRoute;
     document.getElementById('myButton2').onclick = clearRoute;
+    document.getElementById('import').onclick = import_coords;
 }
 
 function addPoint(coords) {
@@ -106,4 +108,19 @@ function clearRoute() {
             map.geoObjects.remove(geoObject);
         }
     });
+}
+function import_coords() {
+    fetch('/import_coords', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ "url":  document.getElementById('url').value})
+    })
+    .then(response => response.json())
+    .then(imp_coord => {
+    for (const item of imp_coord){
+        addPoint(item);
+    }
+    })
 }

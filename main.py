@@ -5,17 +5,22 @@ from flask_login import UserMixin, LoginManager, login_user, login_required, log
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 import os
+import sys
 from instance.DataBase import *
 import requests
 import ast
 import gpxpy
 import simplekml
+from io import BytesIO
+from PIL import Image
+import urllib.parse
+
+# import re
 
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'dng', 'raw', 'ARW', 'mp4', 'avi', 'mov'}
 PHOTO_FORMAT = {'png', 'jpg', 'dng', 'raw', 'ARW'}
 VIDEO_FORMAT = {'mp4', 'avi', 'mov'}
-
 
 app = Flask(__name__)
 app.secret_key = '79d77d1e7f9348c59a384d4376a9e53f'
@@ -34,7 +39,7 @@ def load_user(user_id):
 
 def allowed_file(filename):
     return '.' in filename and \
-           filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
+        filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 
 @app.route('/')
@@ -132,7 +137,9 @@ def add_route():
             coords_text += f"{p[0]};{p[1]}@"
         coords_text = coords_text[:-1]
 
-        route = Routes(title=title, description=description, status=status, user_id=current_user.id, rating=0, route_coords=coords_text)
+        route = Routes(title=title, description=description, status=status,
+                       user_id=current_user.id, rating=0, route_coords=coords_text, check_admin=0)
+        # отправить на почту админу, что созадли новый маршрут, нужно проверить его
         db.session.add(route)
         db.session.commit()
         db.session.refresh(route)
@@ -158,12 +165,13 @@ def evaluate_route(id):
     if request.method == 'POST':
         text = request.form.get('comment')
         mark = request.form.get('mark')
-        comment = Comments(route_id=id, text=text, user_id=current_user.id)
+        comment = Comments(route_id=id, text=text, user_id=current_user.id, check_admin=0)
+        # отправить на почту админу, что созадли новый комментарий, нужно проверить его
         route = Routes.query.filter(Routes.id == id).first()
         try:
             cnt_mrks = route.count_marks
             route.count_marks += 1
-            route.rating = ((float(route.rating)*int(cnt_mrks))+float(mark))/(cnt_mrks+1)
+            route.rating = ((float(route.rating) * int(cnt_mrks)) + float(mark)) / (cnt_mrks + 1)
             db.session.add(comment)
             db.session.commit()
             flash("Оценка успешно сохранена!")
@@ -219,6 +227,7 @@ def del_route(id):
                 db.session.delete(photo)
             db.session.commit()
             flash('Маршрут удалён!')
+            # отправить на почту,что маршрут удалён
             return redirect("/")
         except Exception as e:
             flash('Ошибка при удалении')
@@ -253,12 +262,65 @@ def get_coords(id):
     return jsonify(res)
 
 
+@app.route('/import_coords', methods=['GET', 'POST'])
+def import_coords():
+    if request.method == 'POST':
+        url = request.json['url']
+        if "openstreetmap" in url:
+            parsed_url = urllib.parse.urlparse(url)
+            query_params = urllib.parse.parse_qs(parsed_url.query)
+
+            # Извлекаем маршрут
+            route_param = query_params.get('route', [])
+
+            if not route_param:
+                return jsonify({"error": "Route parameter not found"}), 400
+
+            # Получаем координаты и разделяем их
+            route = route_param[0]
+            coordinates = route.split(';')
+
+            imp_coord = [tuple(map(float, coord.split(','))) for coord in coordinates]
+
+            return jsonify(imp_coord)
+        else:
+            if "maps.app.goo.gl" in url:
+                r = requests.get(url)
+                title_point = []
+                imp_coord = []
+                geocode_url = "https://geocode-maps.yandex.ru/1.x/"
+                api_key = "fc583f53-ce4b-49a8-9926-2cc9b2ac3082"
+                for i in range(5, len(r.url.split("/"))):
+                    if "@" in urllib.parse.unquote(r.url.split("/")[i]):
+                        break
+                    else:
+                        title_point.append(urllib.parse.unquote(r.url.split("/")[i]).replace("+", " "))
+                for title in title_point:
+                    response = requests.get(geocode_url,
+                                            params={'apikey': api_key, 'geocode': title, 'format': 'json'})
+                    data = response.json()
+                    coords = data['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['Point'][
+                        'pos'].split()
+                    imp_coord.append([float(coords[1]), float(coords[0])])  # [latitude, longitude]
+                return jsonify(imp_coord)
+            elif "yandex.ru/maps" in url:
+                imp_coord = []
+                sp_coords = url.split("mode=routes&rtext=")[1].split("&")[0].split("~")
+                for coords in sp_coords:
+                    coords = coords.split("%2C")
+                    imp_coord.append([float(coords[0]), float(coords[1])])  # [latitude, longitude]
+                return jsonify(imp_coord)
+            else:
+                return jsonify({"error": "Нельзя из такого сервиса импортировать"}), 400
+
+
+
 @app.route('/map', methods=['GET', 'POST'])
-def map():
+def maps():
     if request.method == 'POST':
         data = request.json
         points = data['points']
-        # Запрос к Яндекс Геокодеру для получения координат
+
         geocode_url = "https://geocode-maps.yandex.ru/1.x/"
         api_key = "fc583f53-ce4b-49a8-9926-2cc9b2ac3082"
 
@@ -314,9 +376,15 @@ def edit_route(id):
                 status = 0
             else:
                 status = 0
+            who_edit = ""
+            if current_user.admin == 1:
+                who_edit = "admin"
+            else:
+                who_edit = "author"
             try:
                 history_route = History(title=route.title, description=route.description, user_id=route.user_id,
-                                        rating=route.rating, status=route.status, route_id=route.id, last=1)
+                                        rating=route.rating, status=route.status, route_id=route.id, last=1,
+                                        who_edit=who_edit)
                 past_history = History.query.filter(History.route_id == id and History.last == 1).first()
                 if not (past_history is None):
                     past_history.last = 0
@@ -324,8 +392,11 @@ def edit_route(id):
                 route.title = title
                 route.description = description
                 route.status = status
+                if current_user.admin == 1:
+                    route.check_admin = 1
                 db.session.commit()
-                flash("Маршрута изменён")
+                flash("Маршрут изменён")
+                # если изменил админ, отправить на почту автора, что админ изменил его маршрут
                 return redirect(f'/route/{id}')
             except:
                 flash("Возникла ошибка при изменении маршрута")
@@ -335,11 +406,60 @@ def edit_route(id):
         return redirect('/')
 
 
+@app.route('/edit_comment/<int:id>', methods=["POST", "GET"])
+def edit_comment(id):
+    comment = Comments.query.filter_by(id=id).first()
+    if current_user.is_authenticated and (current_user.id == comment.user_id or current_user.admin == 1):
+        if request.method == "GET":
+            return render_template("edit_comment.html", comment=comment)
+        if request.method == "POST":
+            text = request.form.get('text')
+        try:
+            comment.text = text
+            if current_user.admin == 1:
+                comment.check_admin = 1
+            db.session.commit()
+            flash("Комментарий изменён")
+            # если изменил админ, отправить на почту автора, что админ изменил его комментарий
+        except Exception as e:
+            flash("Возникла ошибка при изменении комменатрия")
+            return redirect('/')
+    else:
+        flash('Нет доступа')
+        return redirect('/')
+
+
+@app.route('/delete_comment/<int:id>')
+@login_required
+def del_comment(id):
+    comment = Comments.query.filter_by(id=id).first()
+    try:
+        db.session.delete(comment)
+        db.session.commit()
+        flash('Комментарий удалён!')
+        return redirect("/")
+    except Exception as e:
+        flash('Ошибка при удалении')
+        return redirect("/")
+
+
+@app.route('/moderation')
+def moderation():
+    routes = Routes.query.filter(Routes.check_admin == 0).all()
+    comments = Comments.query.filter(Comments.check_admin == 0).all()
+    return render_template("moderation.html", routes=routes, comments=comments)
+
+
 @app.route('/history_route/<int:id>', methods=["POST", "GET"])
 def history_route(id):
     route = Routes.query.filter_by(id=id).first()
     last_history = History.query.filter(History.route_id == id and History.last == 1).first()
     past_history = History.query.filter(History.route_id == id and History.last == 0).all()
+    who_edit = ""
+    if last_history.who_edit == "admin":
+        who_edit = "администратор"
+    else:
+        who_edit = "автор"
     no_edit_title = 0
     no_edit_description = 0
     red_text_title = ""
@@ -348,7 +468,7 @@ def history_route(id):
     red_text_description = ""
     green_text_description = ""
     just_text_description = ""
-    if not(last_history is None):
+    if not (last_history is None):
         if route.title != last_history.title:
             for i in range(max(len(route.title), len(last_history.title))):
                 try:
@@ -385,10 +505,10 @@ def history_route(id):
         no_edit_title = 1
         no_edit_description = 1
     return render_template("history.html", just_text_title=just_text_title, red_text_title=red_text_title,
-                                green_text_title=green_text_title, no_edit_title=no_edit_title,
-                                just_text_description=just_text_description, red_text_description=red_text_description,
-                                green_text_description=green_text_description, no_edit_description=no_edit_description,
-                                past_history=past_history)
+                           green_text_title=green_text_title, no_edit_title=no_edit_title,
+                           just_text_description=just_text_description, red_text_description=red_text_description,
+                           green_text_description=green_text_description, no_edit_description=no_edit_description,
+                           past_history=past_history, who_edit=who_edit)
 
 
 @app.route('/export/gpx/<int:id>', methods=["POST", "GET"])
@@ -400,11 +520,12 @@ def export_gpx(id):
     i = 1
     for point_coords in route_coords:
         coords = point_coords.split(";")
-        gpx.waypoints.append(gpxpy.gpx.GPXWaypoint(latitude=float(coords[0]), longitude=float(coords[1]), name=f'Точка {i}'))
+        gpx.waypoints.append(
+            gpxpy.gpx.GPXWaypoint(latitude=float(coords[0]), longitude=float(coords[1]), name=f'Точка {i}'))
         i += 1
 
     # Сохраняем GPX файл во временный файл
-    gpx_file_path = 'output.gpx'
+    gpx_file_path = 'temp/output.gpx'
     if not os.path.exists(gpx_file_path):
         return 404
     with open(gpx_file_path, 'w') as f:
@@ -426,7 +547,7 @@ def export_kml(id):
         i += 1
 
     # Сохраняем KML файл во временный файл
-    kml_file_path = 'output.kml'
+    kml_file_path = 'temp/output.kml'
     kml.save(kml_file_path)
 
     return send_file(kml_file_path, as_attachment=True)
@@ -445,10 +566,45 @@ def export_kmz(id):
         i += 1
 
     # Сохраняем KMZ файл во временный файл
-    kmz_file_path = 'output.kmz'
+    kmz_file_path = 'temp/output.kmz'
     kml.savekmz(kmz_file_path)
 
     return send_file(kmz_file_path, as_attachment=True)
+
+
+# @app.route('/export/png/<int:id>', methods=["POST", "GET"])
+# def export_png(id):
+#     apikey = "f3a0fe3a-b07e-4840-a1da-06f18b2ddf13"
+#     route = Routes.query.filter_by(id=id).first()
+#     route_coords = route.route_coords.split("@")
+#     i = 1
+#     pt = ""
+#     pl = ""
+#     for point_coords in route_coords:
+#         coords = point_coords.split(";")
+#         org_point = f"{coords[0]},{coords[1]}"
+#         pt += f"{org_point},pm2dgl~"
+#         pl += f"{org_point},"
+#     pl = pl[:-1]
+#     pt = pt[:-1]
+#
+#     # Собираем параметры для запроса к StaticMapsAPI:
+#     map_params = {
+#         "ll": "56.0184,92.8672",
+#         "apikey": apikey,
+#         "pt": pt,
+#         "pl": pl
+#     }
+#
+#     map_api_server = "https://static-maps.yandex.ru/v1"
+#     response = requests.get(map_api_server, params=map_params)
+#     print(response.url)
+#     im = BytesIO(response.content)
+#     opened_image = Image.open(im)
+#     png_file_path = "temp/output.png"
+#     opened_image.save(png_file_path)
+#
+#     return send_file(png_file_path, as_attachment=True)
 
 
 if __name__ == "__main__":

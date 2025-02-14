@@ -23,6 +23,7 @@ class Routes(db.Model, UserMixin):
     count_marks = db.Column(db.Integer, default=0)
     photos_id = db.Column(db.String)
     route_coords = db.Column(db.String)
+    check_admin = db.Column(db.Integer)
 
 
 class Comments(db.Model, UserMixin):
@@ -30,6 +31,7 @@ class Comments(db.Model, UserMixin):
     user_id = db.Column(db.Integer)
     route_id = db.Column(db.Integer)
     text = db.Column(db.String)
+    check_admin = db.Column(db.Integer)
 
 
 class History(db.Model, UserMixin):
@@ -41,6 +43,7 @@ class History(db.Model, UserMixin):
     status = db.Column(db.Integer)
     route_id = db.Column(db.Integer)
     last = db.Column(db.Integer)
+    who_edit = db.Column(db.String)
 
 
 class Photos(db.Model, UserMixin):
