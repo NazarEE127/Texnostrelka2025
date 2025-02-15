@@ -14,7 +14,6 @@ function init() {
     // Обработчик клика по карте
     map.events.add('click', function (e) {
         const coords = e.get('coords');
-        console.log(coords)
         addPoint(coords);
     });
 
@@ -79,12 +78,12 @@ function getRoute() {
                 results: 1
             }
         });
-        console.log(JSON.stringify(coordinates))
         document.getElementById('routeCoordinates').value = JSON.stringify(coordinates);
         map.geoObjects.add(multiRoute);
         map.setBounds(multiRoute.getBounds());
 
     })
+    .catch(err => console.error(err));
 
 }
 
@@ -123,4 +122,5 @@ function import_coords() {
         addPoint(item);
     }
     })
+    .catch(err => console.error(err));
 }

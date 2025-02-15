@@ -44,7 +44,7 @@
 
         <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
           <!-- <li><a href="/" class="nav-link px-2 link-light">Главная</a></li>  -->
-          <li><a href="/all_routes" class="nav-link px-2 link-light">Маршруты</a></li>
+          <li><a href="/all_routes/def" class="nav-link px-2 link-light">Маршруты</a></li>
           {% if current_user.is_authenticated %}
           <li><a href="/add_route" class="nav-link px-2 link-light">Добавить маршрут</a></li>
 
@@ -54,10 +54,9 @@
 
 
         {% if current_user.is_authenticated %}
-          <!--<h5 class="text-end text-light" style="margin: 0px 10px 5px 5px">{{current_user.username}}</h5>margin-right:10px margin-top:5px-->
           <div class="dropdown text-end">
             <a href="#" class="d-block link-light text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-              <img src="{{ url_for('static', filename='img/{{current_user.ava}}') }}" alt="ава" width="32" height="32" class="rounded-circle" style="box-shadow:0px 0px 19px rgb(255 255 255 / 25%)">
+              <img src="/static/img/{{ current_user.ava }}" alt="ава" width="32" height="32" class="rounded-circle" style="box-shadow:0px 0px 19px rgb(255 255 255 / 25%)">
 
             </a>
             <ul class="dropdown-menu text-small" style="">
@@ -80,13 +79,11 @@
 
     <div class="container">
 
-{% with messages = get_flashed_messages() %}
+{% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-      {% for message in messages %}
-          <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <h2>{{ message }}</h2>
+          <div class="alert alert-{{ messages[0][0] }} alert-dismissible fade show" role="alert">
+            <h2>{{ messages[0][1] }}</h2>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          {% endfor %}
         </div>
         {% endif %}
         {% endwith %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Мои комментарии
+{% endblock %}
+
+
+{% block main %}
+<style>
+.map {
+    padding: 40px 0;
+    text-align: center;
+}
+
+.container-m {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+h2 {
+    font-size: 35px;
+    font-family: 'Arial Narrow Bold', sans-serif;
+    margin-bottom: 20px;
+}
+</style>
+
+<h2>Комментарии</h2>
+  {% if comments|length > 0 %}
+  <div class="row row-cols-1 row-cols-sm-6 row-cols-md-6 g-3">
+      {% for i in range(comments|length) %}
+        <div class="col">
+          <div class="card shadow-sm">
+            <div><h4>Маршрут: {{ name_routes[i] }}</h4><h4>Текст:{{ comments[i].text }}</h4></div>
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <a href="/edit_comment/{{ comments[i].id }}"><button type="button" class="btn btn-sm btn-outline-success">Редактировать</button></a>
+                  <a href="/delete_comment/{{ comments[i].id }}"><button type="button" class="btn btn-sm btn-outline-danger">Удалить</button></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+    <p>Пока у вас нет комментариев </p>
+    {% endif %}
+      </div>
+
+
+
+{% endblock %}

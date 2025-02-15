@@ -71,7 +71,8 @@ img.displayed {
       </div>
 
 <hr class="my-4">
-
+<div id="map" style="width: 600px; height: 600px"></div>
+<span style="text-align:right">
 <p style="display: flex;justify-content: flex-end;"><em>Рейтинг: <b>{{ route.rating }}</b></em></p>
 <div style="display: flex;justify-content: flex-end;">
 <p><em>Отзывы: </em></p>
@@ -85,7 +86,7 @@ img.displayed {
 <p>Пока нет отзывов</p>
 {% endif %}
 </div>
-<em>Описание: </em>
+<p>Описание: </p>
 <p>{{ route.description }}</p>
 
 {% if route.status == 1 %}
@@ -94,11 +95,16 @@ img.displayed {
 <p><em>Статус альбома: <b>Приватный альбом</b></em></p>
 {% endif %}
 
-<em>Владелец: </em>
+<p>Владелец: </p>
 
-<a href="/profile/{{user.id}}"><em>{{user.username}}</em></a><br>
+<p>{{user.username}}</p><br>
 <br>
-<div id="map" style="width: 400px; height: 400px"></div>
+
+
+<button id="search_places">Места рядом</button><input type="text" id="place" name="place">
+<button id="myButton2">Очистить</button>
+<div id="places"></div>
+</span>
 <br>
 <hr class="my-4">
 {% if current_user.is_authenticated %}

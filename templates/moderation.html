@@ -33,7 +33,7 @@ h2 {
             <div><h4>{{ routes[i].title }}</h4></div>
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-center">
-                <div class="btn-group">
+                <div>
                   <a href="/edit_route/{{ routes[i].id }}"><button type="button" class="btn btn-sm btn-outline-success">Редактировать</button></a>
                   <a href="/delete_route/{{ routes[i].id }}"><button type="button" class="btn btn-sm btn-outline-danger">Удалить</button></a>
                 </div>
@@ -55,7 +55,7 @@ h2 {
             <div><h4>{{ comments[i].text }}</h4></div>
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-center">
-                <div class="btn-group">
+                <div>
                   <a href="/edit_comment/{{ comments[i].id }}"><button type="button" class="btn btn-sm btn-outline-success">Редактировать</button></a>
                   <a href="/delete_comment/{{ comments[i].id }}"><button type="button" class="btn btn-sm btn-outline-danger">Удалить</button></a>
                 </div>

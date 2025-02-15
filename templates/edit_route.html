@@ -21,12 +21,42 @@
         <textarea class="form-control" id="description" name="description" rows="3">{{ route.description }}</textarea>
     </div>
     <div class="form-group">
+
+        {% if route.status == 1 %}
+        <label for="public">Публичный</label>
+        <input type="checkbox" id="public" name="public" checked>
+        <label for="private">Приватный</label>
+        <input type="checkbox" id="private" name="private">
+        {% else %}
         <label for="public">Публичный</label>
         <input type="checkbox" id="public" name="public">
         <label for="private">Приватный</label>
-        <input type="checkbox" id="private" name="private">
-
+        <input type="checkbox" id="private" name="private" checked>
+        {% endif %}
     </div>
+        <h2>Фотографии</h2>
+  {% if photos|length > 0 %}
+  <div class="row row-cols-1 row-cols-sm-6 row-cols-md-6 g-3">
+      {% for i in range(photos|length) %}
+        <div class="col">
+          <div class="card shadow-sm">
+            <div><img src="/static/img/{{ photos[i].name }}" class="card-img-top" width="50%" height="225"></div>
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <a href="/edit_photo/{{ photos[i].id }}"><button type="button" class="btn btn-sm btn-outline-success">Редактировать</button></a>
+                    <br>
+                    <a href="/delete_photo/{{ photos[i].id }}"><button type="button" class="btn btn-sm btn-outline-danger">Удалить</button></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+    <p>Пока у маршрута нет фото</p>
+    {% endif %}
+      </div>
 <input type="submit" class="btn btn-primary" value="Отправить">
     </form>
 

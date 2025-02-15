@@ -24,7 +24,18 @@ h2 {
     margin-bottom: 20px;
 }
 </style>
-
+  <span><h3>Отсортировать по</h3>
+<a href="/all_routes/alphabet" class="btn btn-success">алфавиту(А-Я)</a>
+<a href="/all_routes/alphabet_back" class="btn btn-success">алфавиту(Я-А)</a>
+<a href="/all_routes/rating" class="btn btn-success">рейтингу(по возрастанию)</a>
+      <a href="/all_routes/rating_back" class="btn btn-success">рейтингу(по убыванию)</a>
+    <a href="/all_routes/def" class="btn btn-success">дате добавления</a></span>
+<span style="text-align:right"><h3>Поиск по названию</h3>
+<form method="post" class="needs-validation" enctype="multipart/form-data">
+    <input type="text" name="title" id="title"  placeholder="Введите название" value="" required=""><br>
+    <input type="submit" class="btn btn-primary"  style="text-align: center;" value="Поиск">
+</form>
+</span>
   <h2>Маршруты</h2>
   {% if routes|length > 0 %}
   <div class="row row-cols-1 row-cols-sm-6 row-cols-md-6 g-3">
@@ -33,12 +44,12 @@ h2 {
         <div class="col">
           <div class="card shadow-sm">
             <div><h4>{{ routes[i].title }}</h4></div>
-            <a href="/route/{{ routes[i].id }}"><img src="static/img/{{ photos[routes[i].id][0] }}" class="card-img-top" width="50%" height="225"></a>
+            <a href="/route/{{ routes[i].id }}"><img src="/static/img/{{ photos[routes[i].id][0] }}" class="card-img-top" width="50%" height="225"></a>
             <div class="card-body">
               <p class="card-text">Рейтинг: <b>{{routes[i].rating}}</b></p>
               <div class="d-flex justify-content-between align-items-center">
                 {% if routes[i].status == 1 %}
-                <div class="btn-group">
+                <div>
                   <a href="/route/{{ routes[i].id }}"><button type="button" class="btn btn-sm btn-outline-warning">Открыть</button></a>
                   {% if current_user.admin == 1 %}
                   <a href="/edit_route/{{ routes[i].id }}"><button type="button" class="btn btn-sm btn-outline-success">Редактировать</button></a>

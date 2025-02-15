@@ -14,8 +14,7 @@ import simplekml
 from io import BytesIO
 from PIL import Image
 import urllib.parse
-
-# import re
+from flask_mail import Mail, Message
 
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'dng', 'raw', 'ARW', 'mp4', 'avi', 'mov'}
@@ -31,6 +30,46 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 db.init_app(app)
 manager = LoginManager(app)
 
+# google - zwvk behz tlqg jqzl
+# yandex - egdayybueutdalwl
+
+
+def send_email(server, recipient, subject, text):
+    if server == "mail.ru":
+        app.config['MAIL_SERVER'] = 'smtp.mail.ru'
+        app.config['MAIL_PORT'] = 465
+        app.config['MAIL_USERNAME'] = 'maks.giskin@mail.ru'
+        app.config['MAIL_DEFAULT_SENDER'] = 'maks.giskin@mail.ru'
+        app.config['MAIL_PASSWORD'] = '3PsAkfBDTiUfay9Zb7ME'
+        app.config['MAIL_USE_TLS'] = False
+        app.config['MAIL_USE_SSL'] = True
+    elif server == "gmail.com":
+        app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+        app.config['MAIL_PORT'] = 587  # Порт для TLS
+        app.config['MAIL_USE_TLS'] = True
+        app.config['MAIL_USERNAME'] = 'nazarfedotko50@gmail.com'
+        app.config['MAIL_PASSWORD'] = 'zwvk behz tlqg jqzl'
+        app.config['MAIL_DEFAULT_SENDER'] = 'your_email@gmail.com'
+    elif server == "yandex.ru":
+        app.config['MAIL_SERVER'] = 'smtp.yandex.com'
+        app.config['MAIL_PORT'] = 587  # Порт для TLS
+        app.config['MAIL_USE_TLS'] = True
+        app.config['MAIL_USERNAME'] = 'Nazar127f@yandex.ru'
+        app.config['MAIL_PASSWORD'] = 'egdayybueutdalwl'
+        app.config['MAIL_DEFAULT_SENDER'] = 'Nazar127f@yandex.ru'
+    else:
+        print("на такую почту не получится отправить письмо")
+        return "на такую почту не получится отправить письмо"
+    mail = Mail(app)
+    msg = Message(subject, recipients=[recipient])
+    msg.body = text
+    try:
+        mail.send(msg)
+        print("Email sent!")
+    except Exception as e:
+        print("ошибка при отправки")
+        print(e)
+
 
 @manager.user_loader
 def load_user(user_id):
@@ -45,6 +84,19 @@ def allowed_file(filename):
 @app.route('/')
 def index():
     return render_template("index.html")
+
+
+@app.route('/verified_email/<email>')
+def verified(email):
+    user = Users.query.filter(Users.email == email).first()
+    try:
+        user.verified = 1
+        db.session.commit()
+        flash("Почта подтверждена", "success")
+        return redirect("/")
+    except:
+        flash("Возникла ошибка при подтверждении почты")
+        return redirect("/")
 
 
 @app.route('/profile')
@@ -70,26 +122,41 @@ def sign_up():
     user_username = Users.query.filter_by(username=username).first()
     file = request.files['file']
     file.save(os.path.join('static/img', file.filename))
+    server = ""
+    if "mail.ru" in email:
+        server = "mail.ru"
+    elif "gmail.com" in email:
+        server = "gmail.com"
+    elif "yandex.ru" in email:
+        server = "yandex.ru"
+    else:
+        flash('Такая почта не подходит!', "danger")
+        return render_template("sign-up.html")
     if user_email is not None:
-        flash('Email пользователя занят!')
+        flash('Email пользователя занят!', "danger")
         return render_template("sign-up.html")
 
     if user_username is not None:
-        flash('Имя пользователя занято!')
+        flash('Имя пользователя занято!', "danger")
         return render_template("sign-up.html")
 
     if password != password2:
-        flash("Пароли не совпадают!")
+        flash("Пароли не совпадают!", "danger")
         return render_template("sign-up.html")
     try:
+        text = ("Вы прошли регистрацию на сайте 'Маршрутизатор'\n"
+                "Для полным пользованием аккаунтом необходимо подтвердить email\n"
+                f"Ссылка для подтверждения http://127.0.0.1:5000/verified_email/{email}")
+        send_email(server, email, "Регистрация на сайте 'Маршрутизатор'", text)
         hash_pwd = generate_password_hash(password)
-        new_user = Users(email=email, password=hash_pwd, ava=file.filename, username=username)
+        new_user = Users(email=email, password=hash_pwd, ava=file.filename, username=username, verified=0)
         db.session.add(new_user)
         db.session.commit()
         return redirect("/")
 
     except Exception as e:
-        flash("Возникла ошибка при регистрации")
+        print(e)
+        flash("Возникла ошибка при регистрации", "danger")
         return render_template("sign-up.html")
 
 
@@ -104,9 +171,9 @@ def login():
                 login_user(user)
                 return redirect('/')
             else:
-                flash('Неверный логин или пароль')
+                flash('Неверный логин или пароль', "danger")
         else:
-            flash('Такого пользователя не существует')
+            flash('Такого пользователя не существует', "danger")
     return render_template("login.html")
 
 
@@ -139,7 +206,17 @@ def add_route():
 
         route = Routes(title=title, description=description, status=status,
                        user_id=current_user.id, rating=0, route_coords=coords_text, check_admin=0)
-        # отправить на почту админу, что созадли новый маршрут, нужно проверить его
+        server = ""
+        if "mail.ru" in current_user.email:
+            server = "mail.ru"
+        elif "gmail.com" in current_user.email:
+            server = "gmail.com"
+        elif "yandex.ru" in current_user.email:
+            server = "yandex.ru"
+        text = (f"Пользователь {current_user.username} с email {current_user.email} добавил маршрут {title}\n"
+                f"Нужно проверить его и опубликовать\n"
+                f"Ссылка на страницу модерации: http://127.0.0.1:5000/moderation")
+        send_email(server, current_user.email, "Пользователь добавил маршрут на сайте 'Маршрутизатор'", text)
         db.session.add(route)
         db.session.commit()
         db.session.refresh(route)
@@ -154,7 +231,7 @@ def add_route():
             text += str(photo.id) + "|"
         r.photos_id = text[:-1]
         db.session.commit()
-        flash("Маршрут успешно создан!")
+        flash("Маршрут успешно создан!", "success")
         return redirect("/")
     return render_template('add_route.html')
 
@@ -174,16 +251,36 @@ def evaluate_route(id):
             route.rating = ((float(route.rating) * int(cnt_mrks)) + float(mark)) / (cnt_mrks + 1)
             db.session.add(comment)
             db.session.commit()
-            flash("Оценка успешно сохранена!")
+            flash("Оценка успешно сохранена!", "success")
             return redirect("/")
         except Exception as e:
-            flash("Возникла ошибка при оценки маршрута")
+            flash("Возникла ошибка при оценки маршрута", "danger")
     return render_template('evaluate_route.html')
 
 
-@app.route('/all_routes')
-def all_routes():
-    routes = Routes.query.all()
+@app.route('/all_routes/<sort>', methods=['GET', 'POST'])
+def all_routes(sort):
+    routes = []
+    status = False
+    if request.method == "POST":
+        title = request.form.get('title')
+        routes_all = Routes.query.all()
+        for el in routes_all:
+            if title in el.title:
+                routes.append(el)
+        status = True
+    if not status:
+        if sort == "def":
+            routes = Routes.query.all()
+        elif sort == "alphabet":
+            routes = Routes.query.order_by(Routes.title).all()
+        elif sort == "alphabet_back":
+            routes = Routes.query.order_by(desc(Routes.title)).all()
+        elif sort == "rating":
+            routes = Routes.query.order_by(Routes.rating).all()
+        elif sort == "rating_back":
+            routes = Routes.query.order_by(desc(Routes.rating)).all()
+
     photos = {}
     for r in routes:
         ps = Photos.query.filter(Photos.route_id == r.id).all()
@@ -193,6 +290,16 @@ def all_routes():
             else:
                 photos[r.id] = [ps[i].name]
     return render_template("all_routes.html", routes=routes, photos=photos)
+
+
+@app.route('/comments/<int:id>')
+def comments(id):
+    comments = Comments.query.filter(Comments.user_id == id).all()
+    name_routes = []
+    for comment in comments:
+        route = Routes.query.filter(Routes.id == comment.route_id).first()
+        name_routes.append(route.title)
+    return render_template("comments.html", comments=comments, name_routes=name_routes)
 
 
 @app.route('/route/<int:id>', methods=['GET', 'POST'])
@@ -226,14 +333,14 @@ def del_route(id):
             for photo in photos:
                 db.session.delete(photo)
             db.session.commit()
-            flash('Маршрут удалён!')
+            flash('Маршрут удалён!', "success")
             # отправить на почту,что маршрут удалён
             return redirect("/")
         except Exception as e:
-            flash('Ошибка при удалении')
+            flash('Ошибка при удалении', "danger")
             return redirect("/")
     else:
-        flash('Нет доступа')
+        flash('Нет доступа', "danger")
         return redirect("/")
 
 
@@ -245,10 +352,10 @@ def del_account(id):
         logout_user()
         db.session.delete(user)
         db.session.commit()
-        flash('Аккаунт удалён!')
+        flash('Аккаунт удалён!', "success")
         return redirect("/")
     except Exception as e:
-        flash('Ошибка при удалении')
+        flash('Ошибка при удалении', "danger")
         return redirect("/")
 
 
@@ -314,7 +421,6 @@ def import_coords():
                 return jsonify({"error": "Нельзя из такого сервиса импортировать"}), 400
 
 
-
 @app.route('/map', methods=['GET', 'POST'])
 def maps():
     if request.method == 'POST':
@@ -349,22 +455,23 @@ def edit_data(id):
                 user.email = email
                 user.username = username
                 db.session.commit()
-                flash("Данные изменены")
+                flash("Данные изменены", "success")
                 return redirect('/profile')
             except:
-                flash("Возникла ошибка при изменении данных")
+                flash("Возникла ошибка при изменении данных", "danger")
                 return redirect('/profile')
     else:
-        flash('Нет доступа')
+        flash('Нет доступа', "danger")
         return redirect('/')
 
 
 @app.route('/edit_route/<int:id>', methods=["POST", "GET"])
 def edit_route(id):
     route = Routes.query.filter_by(id=id).first()
+    photos = Photos.query.filter(Photos.route_id == id).all()
     if current_user.is_authenticated and (current_user.id == route.user_id or current_user.admin == 1):
         if request.method == "GET":
-            return render_template("edit_route.html", route=route)
+            return render_template("edit_route.html", route=route, photos=photos)
         if request.method == "POST":
             title = request.form.get('title')
             description = request.form.get('description')
@@ -395,14 +502,28 @@ def edit_route(id):
                 if current_user.admin == 1:
                     route.check_admin = 1
                 db.session.commit()
-                flash("Маршрут изменён")
-                # если изменил админ, отправить на почту автора, что админ изменил его маршрут
+                flash("Маршрут изменён", "success")
+                if current_user.admin == 1:
+                    user = Users.query.filter(Users.id == route.user_id).first()
+                    server = ""
+                    if "mail.ru" in user.email:
+                        server = "mail.ru"
+                    elif "gmail.com" in user.email:
+                        server = "gmail.com"
+                    elif "yandex.ru" in user.email:
+                        server = "yandex.ru"
+                    text = ("Администратор изменил ваш маршрут\n"
+                            "Изменения вы можете посмотреть в истории правок либо на странице самого маршрута\n"
+                            f"Если вам не понятны изменения, можете задать вопрос администратору({current_user.email})")
+
+                    send_email(server, current_user.email, "Администратор изменил ваш маршрут на сайте 'Маршрутизатор'",
+                               text)
                 return redirect(f'/route/{id}')
             except:
-                flash("Возникла ошибка при изменении маршрута")
+                flash("Возникла ошибка при изменении маршрута", "danger")
                 return redirect('/all_routes')
     else:
-        flash('Нет доступа')
+        flash('Нет доступа', "danger")
         return redirect('/')
 
 
@@ -419,13 +540,28 @@ def edit_comment(id):
             if current_user.admin == 1:
                 comment.check_admin = 1
             db.session.commit()
-            flash("Комментарий изменён")
-            # если изменил админ, отправить на почту автора, что админ изменил его комментарий
+            flash("Комментарий изменён", "success")
+            if current_user.admin == 1:
+                user = Users.query.filter(Users.id == comment.user_id).first()
+                server = ""
+                if "mail.ru" in user.email:
+                    server = "mail.ru"
+                elif "gmail.com" in user.email:
+                    server = "gmail.com"
+                elif "yandex.ru" in user.email:
+                    server = "yandex.ru"
+                text = ("Администратор изменил ваш комментарий\n"
+                        "Изменения вы можете посмотреть в личном кабинете\n"
+                        f"Если вам не понятны изменения, можете задать вопрос администратору({current_user.email})")
+
+                send_email(server, current_user.email, "Администратор изменил ваш комментарий на сайте 'Маршрутизатор'",
+                           text)
+            return redirect('/')
         except Exception as e:
-            flash("Возникла ошибка при изменении комменатрия")
+            flash("Возникла ошибка при изменении комменатрия", "danger")
             return redirect('/')
     else:
-        flash('Нет доступа')
+        flash('Нет доступа', "danger")
         return redirect('/')
 
 
@@ -436,11 +572,71 @@ def del_comment(id):
     try:
         db.session.delete(comment)
         db.session.commit()
-        flash('Комментарий удалён!')
+        flash('Комментарий удалён!', "success")
         return redirect("/")
     except Exception as e:
-        flash('Ошибка при удалении')
+        flash('Ошибка при удалении', "danger")
         return redirect("/")
+
+
+@app.route('/delete_photo/<int:id>')
+@login_required
+def del_photo(id):
+    photo = Photos.query.filter_by(id=id).first()
+    route = Routes.query.filter(Routes.id == photo.route_id).first()
+    text = ""
+    for el in route.photos_id.split("|"):
+        if el != str(id):
+            text += el + "|"
+    text = text[:-1]
+    try:
+        db.session.delete(photo)
+        route.photos_id = text
+        db.session.commit()
+        flash('Фото удалёно!', "success")
+        return redirect(f"/edit_route/{route.id}")
+    except Exception as e:
+        flash('Ошибка при удалении', "danger")
+        return redirect(f"/edit_route/{route.id}")
+
+
+@app.route('/edit_photo/<int:id>', methods=["POST", "GET"])
+def edit_photo(id):
+    photo = Photos.query.filter_by(id=id).first()
+    route = Routes.query.filter(Routes.id == photo.route_id).first()
+    if current_user.is_authenticated and (current_user.id == route.user_id or current_user.admin == 1):
+        if request.method == "GET":
+            return render_template("edit_photo.html", photo=photo)
+        if request.method == "POST":
+            file = request.files['file']
+            try:
+                file.save(os.path.join('static/img', file.filename))
+                photo.name = file.filename
+                db.session.commit()
+                flash("Фото изменёно", "success")
+                if current_user.admin == 1:
+                    user = Users.query.filter(Users.id == route.user_id).first()
+                    server = ""
+                    if "mail.ru" in user.email:
+                        server = "mail.ru"
+                    elif "gmail.com" in user.email:
+                        server = "gmail.com"
+                    elif "yandex.ru" in user.email:
+                        server = "yandex.ru"
+                    text = (f"Администратор изменил фотографию маршрута {route.title}\n"
+                            "Изменения вы можете посмотреть на странице маршрута\n"
+                            f"Если вам не понятны изменения, можете задать вопрос администратору({current_user.email})")
+
+                    send_email(server, current_user.email,
+                               "Администратор изменил фотографию маршрута на сайте 'Маршрутизатор'",
+                               text)
+                return redirect(f"/edit_route/{route.id}")
+            except Exception as e:
+                flash("Возникла ошибка при изменении комменатрия", "danger")
+                return redirect(f"/edit_route/{route.id}")
+    else:
+        flash('Нет доступа', "danger")
+        return redirect('/')
 
 
 @app.route('/moderation')
@@ -605,6 +801,41 @@ def export_kmz(id):
 #     opened_image.save(png_file_path)
 #
 #     return send_file(png_file_path, as_attachment=True)
+
+@app.route('/places', methods=['POST'])
+def places():
+    data = request.json
+    latitude = data['latitude']
+    longitude = data['longitude']
+    text = data["place"]
+
+    # Запрос к Яндекс Геокодеру для получения информации о местах рядом
+    search_url = "https://search-maps.yandex.ru/v1/"
+    api_key = "dda3ddba-c9ea-4ead-9010-f43fbc15c6e3"
+
+    params = {
+        'apikey': api_key,
+        'text': text,  # Здесь можно указать тип места, например, "кафе", "ресторан" и т.д.
+        'll': f"{longitude},{latitude}",
+        'spn': '0.05,0.05',  # Масштаб поиска (широта, долгота)
+        'results': 10,   # Количество результатов
+        "lang": "ru_RU",
+        "type": "biz"
+    }
+
+    response = requests.get(search_url, params=params)
+    places_data = response.json()
+    places_list = []
+    for feature in places_data.get('features', []):
+        properties = feature['properties']
+        place_info = {
+            'name': properties['name'],
+            'address': properties['CompanyMetaData']['address'],
+            'coordinates': feature['geometry']['coordinates']
+        }
+        places_list.append(place_info)
+
+    return jsonify(places_list)
 
 
 if __name__ == "__main__":

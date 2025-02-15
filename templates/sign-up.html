@@ -8,15 +8,6 @@
 <section class="text-center container">
     <div class="col-lg-6 col-md-8 mx-auto">
         <h1>Регистрация</h1>
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        <div class="alert alert-danger">
-            {% for message in messages %}
-            <h2>{{ message }}</h2>
-            {% endfor %}
-        </div>
-        {% endif %}
-        {% endwith %}
         <form class="needs-validation" method="post" enctype="multipart/form-data">
             <input type="email" name="email" id="email" class="form-control" placeholder="Введите почту"
                    required=""><br>

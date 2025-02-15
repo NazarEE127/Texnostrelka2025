@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Редактирование фотографии
+{% endblock %}
+
+
+
+{% block main %}
+
+    <br>
+    <h3 id="header-elem">Редактирование фотографии</h3>
+    <hr class="my-4">
+    <form method="post" enctype="multipart/form-data" id="form">
+    <div class="form-group">
+        <label for="file">Фотография</label>
+        <input type="file" id="file" name="file" value="{{ photo.name }}">
+    </div>
+<input type="submit" class="btn btn-primary" value="Отправить">
+    </form>
+
+
+{% endblock %}

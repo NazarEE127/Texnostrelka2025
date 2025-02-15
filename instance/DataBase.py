@@ -11,6 +11,7 @@ class Users(db.Model, UserMixin):
     password = db.Column(db.String, nullable=False)
     ava = db.Column(db.String, nullable=False)
     admin = db.Column(db.Integer)
+    verified = db.Column(db.Integer)
 
 
 class Routes(db.Model, UserMixin):
