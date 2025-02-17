@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" version="1.1" creator="gpx.py -- https://github.com/tkrajina/gpxpy">
-  <wpt lat="56.042708" lon="92.880446">
+  <wpt lat="56.011711" lon="92.864268">
     <name>Точка 1</name>
   </wpt>
-  <wpt lat="55.758225" lon="37.625226">
+  <wpt lat="51.50845" lon="-0.121515">
     <name>Точка 2</name>
   </wpt>
 </gpx>

@@ -1,29 +1,10 @@
 <!doctype html>
-<style>
-  .md {
-  margin-right: 30px
-  }
-  .main-name{
-  font-size: 25px;
-  margin-right: 20px;
-  color: #FFFFFF;
-  }
-  .bg{
-  background-color: #009999
-  }
-</style>
-
 <html lang="ru">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        #map { height: 600px; }
-        .point {
-            margin-bottom: 10px;
-        }
-    </style>
     <title>{% block title %}{% endblock %}</title>
+    <link rel="icon" href="/static/ico/all.ico">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
     <link href="https://getbootstrap.com/docs/5.3/assets/css/docs.css" rel="stylesheet">
 
@@ -31,23 +12,19 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   </head>
-  <body>
-
-
-  <header class="p-3 mb-3 bg border-bottom">
+  <body class="d-flex flex-column min-vh-100">
+  <header class="p-3 text-bg-success bg-opacity-75">
     <div class="container">
       <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
 
-        <a href="/"><img src="{{ url_for('static', filename='ico/ico.png') }}" width="45" height="45" class="rounded-circle md" style="box-shadow:0px 0px 19px rgb(255 255 255 / 60%)"></a><!--class="rounded-circle"-->
+        <a href="/"><img src="/static/ico/main.ico" width="45" height="45" class="rounded-circle md" style="box-shadow:0px 0px 19px rgb(255 255 255 / 60%)"></a><!--class="rounded-circle"-->
 
-        <a href="/" class="nav-link px-2 link-light"><font face="Franklin Gothic Medium" class="main-name">Маршрутизатор</font></a>
+        <a href="/" class="btn btn-light mx-1"><font face="Franklin Gothic Medium" class="main-name">Маршрутизатор</font></a>
 
         <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
-          <!-- <li><a href="/" class="nav-link px-2 link-light">Главная</a></li>  -->
-          <li><a href="/all_routes/def" class="nav-link px-2 link-light">Маршруты</a></li>
+          <li><a href="/all_routes/def" class="btn btn-outline-light mx-1">Маршруты</a></li>
           {% if current_user.is_authenticated %}
-          <li><a href="/add_route" class="nav-link px-2 link-light">Добавить маршрут</a></li>
-
+          <li><a href="/add_route" class="btn btn-outline-light mx-1">Добавить маршрут</a></li>
           {% endif %}
 
         </ul>
@@ -77,50 +54,34 @@
     </div>
   </header>
 
+<main class="flex-grow-1 bg-success p-2 text-dark bg-opacity-10">
     <div class="container">
-
-{% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          <div class="alert alert-{{ messages[0][0] }} alert-dismissible fade show" role="alert">
-            <h2>{{ messages[0][1] }}</h2>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        {% endif %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show mt-3" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
         {% endwith %}
-  </div>
-<div class="container">
-  {% block main %}
-
-      {% endblock %}
-</div>
+        {% block main %}{% endblock %}
     </div>
+</main>
 
-
+<div class="bg-success bg-opacity-50 w-100 p-0">
   <div class="container">
     <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
       <div class="col-md-4 d-flex align-items-center">
-        <!-- <a href="/" class="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1">
-          <svg class="bi" width="30" height="24"></svg>
-        </a>
-        <a href="https://vk.com/Wiquzix"><img src="/static/img/vk.png" height="30px" width="30px"></a>
-        <a href="https://t.me/Wiquzix"><img src="/static/img/telegram.png" height="30px" width="30px"></a>
-        <img src="/static/img/email.jpg" height="30px" width="40px">   -->
-        <span class="mb-3 mb-md-0 text-muted">  Wiquix@mail.ru   ©2025 Wiquix, Inc
-        </span>
+        <img src="/static/ico/it-cube.png" height="70px" width="100px">
+        <span class="mb-3 mt-3 mb-md-0 text-muted"> ©2025 Wiquix, Inc </span>
       </div>
     </footer>
   </div>
+</div>
 
-
-
-
-
-  <script src="{{ url_for('static',filename='js/bootstrap.bundle.min.js') }}"></script>
-
+    <script src="{{ url_for('static',filename='js/bootstrap.bundle.min.js') }}"></script>
     <script src="/docs/5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
-
-
-
-
   </body>
 </html>

@@ -29,14 +29,17 @@
         <input type="hidden" id="routeCoordinates" name="routeCoordinates">
     </div>
     <br>
-    <button type="submit" class="btn btn-success">Добавить маршрут</button>
+    <button type="submit" class="btn btn-success" style="position: absolute;top: 1050px;left: 280px;">Добавить маршрут</button>
 </form>
-<div id="map" style="width: 600px; height: 600px"></div>
+<div id="map" style="width: 800px; height: 600px"></div>
 <br>
         <div id="pointsList"></div>
-        <button id="myButton">Построить маршрут</button>
-        <button id="myButton2">Очистить маршрут</button>
-        <button id="import">Импортировать</button>
+        <button id="myButton" class="btn btn-success">Построить маршрут</button>
+        <button id="myButton2" class="btn btn-danger">Очистить маршрут</button>
+        <button id="import" class="btn btn-warning">Импортировать</button>
         <input type="text" id="url" name="url">
+        <button id="q" style="width: 30px; height: 30px;border: none;background-image: url('/static/ico/b.ico');background-size: cover;"></button>
+<br>
+<br><br>
 <script type="module" src="static/js/script.js"></script>
 {% endblock %}

@@ -10,7 +10,7 @@
     <br>
     <div style="display:table">
         <div style="display:table-cell">
-            <h2>Последнее изменение(изменение сделал {{ who_edit }}):</h2>
+            <h2>Последнее изменение{% if who_edit != "" %}(изменение сделал {{ who_edit }}):{% endif %}</h2>
             <h3>Название:</h3>
             {% if no_edit_title == 0 %}
             <h4><span>{{just_text_title}}</span><span style="color:red;">{{red_text_title}}</span>     ---->       <span><span>{{just_text_title}}</span><span style="color:green;">{{green_text_title}}</span></span></h4>

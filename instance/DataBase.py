@@ -44,7 +44,7 @@ class History(db.Model, UserMixin):
     status = db.Column(db.Integer)
     route_id = db.Column(db.Integer)
     last = db.Column(db.Integer)
-    who_edit = db.Column(db.String)
+    who_edit = db.Column(db.String, default="author")
 
 
 class Photos(db.Model, UserMixin):

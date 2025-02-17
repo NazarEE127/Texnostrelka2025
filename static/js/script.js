@@ -20,6 +20,7 @@ function init() {
     document.getElementById('myButton').onclick = getRoute;
     document.getElementById('myButton2').onclick = clearRoute;
     document.getElementById('import').onclick = import_coords;
+    document.getElementById('q').onclick = Q;
 }
 
 function addPoint(coords) {
@@ -109,6 +110,10 @@ function clearRoute() {
     });
 }
 function import_coords() {
+    if (document.getElementById('url').value.length == 0){
+        alert('Пожалуйста, введите ссылку');
+        return;
+    }
     fetch('/import_coords', {
         method: 'POST',
         headers: {
@@ -123,4 +128,7 @@ function import_coords() {
     }
     })
     .catch(err => console.error(err));
+}
+function Q() {
+    alert("Инструкция 'Как создать маршрут без импорта':\n1)Поставить точки на карте, через которые будет проходить маршрут\n2)Нажать кнопку 'Построить маршрут'\nИнструкция 'Импорт маршрута':\n1)В текстовом поле введите ссылку на маршрут из доступных сервисов(OSM, Google Map, Yandex Map)\nСсылка должна выглядеть так:\nOSM - https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=56.01%2C92.87%3B55.63%2C37.61#map=3/55.43/65.21\nGoogle Map - https://maps.app.goo.gl/giaX2teWu1PL3YUo7\nYandex Map - https://yandex.ru/maps/?ll=65.234010%2C55.550930&mode=routes&rtext=56.010543%2C92.852581~55.755864%2C37.617698&rtt=auto\n2)Нажать кнопку 'Построить маршрут'\nЕсли хотите очистить всё, нажмите кнопку 'Очистить маршрут'")
 }

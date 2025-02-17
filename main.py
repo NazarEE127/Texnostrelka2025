@@ -1,9 +1,7 @@
 from flask import Flask, render_template, request, redirect, flash, jsonify, send_file
-from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import desc
 from flask_login import UserMixin, LoginManager, login_user, login_required, logout_user, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
-from werkzeug.utils import secure_filename
 import os
 import sys
 from instance.DataBase import *
@@ -15,6 +13,8 @@ from io import BytesIO
 from PIL import Image
 import urllib.parse
 from flask_mail import Mail, Message
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'dng', 'raw', 'ARW', 'mp4', 'avi', 'mov'}
@@ -29,7 +29,7 @@ app.config['UPLOAD_FOLDER'] = 'static/img'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 db.init_app(app)
 manager = LoginManager(app)
-
+limiter = Limiter(get_remote_address, app=app, default_limits=["5 per 10 seconds"])
 # google - zwvk behz tlqg jqzl
 # yandex - egdayybueutdalwl
 
@@ -82,11 +82,13 @@ def allowed_file(filename):
 
 
 @app.route('/')
+@limiter.limit("5 per 20 seconds")
 def index():
     return render_template("index.html")
 
 
 @app.route('/verified_email/<email>')
+@limiter.limit("5 per 20 seconds")
 def verified(email):
     user = Users.query.filter(Users.email == email).first()
     try:
@@ -101,6 +103,7 @@ def verified(email):
 
 @app.route('/profile')
 @login_required
+@limiter.limit("5 per 20 seconds")
 def profile():
     user = Users.query.get(current_user.id)
     routes = Routes.query.filter_by(user_id=current_user.id).all()
@@ -111,6 +114,7 @@ def profile():
 
 
 @app.route('/sign-up', methods=["POST", "GET"])
+@limiter.limit("5 per 20 seconds")
 def sign_up():
     if request.method == "GET":
         return render_template("sign-up.html")
@@ -161,6 +165,7 @@ def sign_up():
 
 
 @app.route('/login', methods=["POST", "GET"])
+@limiter.limit("5 per 20 seconds")
 def login():
     if request.method == "POST":
         email = request.form.get('email')
@@ -178,6 +183,7 @@ def login():
 
 
 @app.route('/logout')
+@limiter.limit("5 per 20 seconds")
 def logout():
     logout_user()
     return redirect("/")
@@ -185,6 +191,7 @@ def logout():
 
 @app.route("/add_route", methods=['GET', 'POST'])
 @login_required
+@limiter.limit("5 per 20 seconds")
 def add_route():
     if request.method == 'POST':
         print("POST")
@@ -238,14 +245,25 @@ def add_route():
 
 @app.route("/evaluate_route/<int:id>", methods=['GET', 'POST'])
 @login_required
+@limiter.limit("5 per 20 seconds")
 def evaluate_route(id):
     if request.method == 'POST':
         text = request.form.get('comment')
         mark = request.form.get('mark')
         comment = Comments(route_id=id, text=text, user_id=current_user.id, check_admin=0)
-        # отправить на почту админу, что созадли новый комментарий, нужно проверить его
         route = Routes.query.filter(Routes.id == id).first()
         try:
+            server = ""
+            if "mail.ru" in current_user.email:
+                server = "mail.ru"
+            elif "gmail.com" in current_user.email:
+                server = "gmail.com"
+            elif "yandex.ru" in current_user.email:
+                server = "yandex.ru"
+            text = (f"Пользователь {current_user.username} с email {current_user.email} добавил комментарий\n"
+                    f"Нужно проверить его и опубликовать\n"
+                    f"Ссылка на страницу модерации: http://127.0.0.1:5000/moderation")
+            send_email(server, current_user.email, "Пользователь добавил комментарий на сайте 'Маршрутизатор'", text)
             cnt_mrks = route.count_marks
             route.count_marks += 1
             route.rating = ((float(route.rating) * int(cnt_mrks)) + float(mark)) / (cnt_mrks + 1)
@@ -259,6 +277,7 @@ def evaluate_route(id):
 
 
 @app.route('/all_routes/<sort>', methods=['GET', 'POST'])
+@limiter.limit("5 per 20 seconds")
 def all_routes(sort):
     routes = []
     status = False
@@ -293,6 +312,7 @@ def all_routes(sort):
 
 
 @app.route('/comments/<int:id>')
+@limiter.limit("5 per 20 seconds")
 def comments(id):
     comments = Comments.query.filter(Comments.user_id == id).all()
     name_routes = []
@@ -303,27 +323,32 @@ def comments(id):
 
 
 @app.route('/route/<int:id>', methods=['GET', 'POST'])
+@limiter.limit("5 per 20 seconds")
 def route(id):
     route = Routes.query.filter(Routes.id == id).first()
     comments = Comments.query.filter(Comments.route_id == id).all()
     user = Users.query.filter(Users.id == route.user_id).first()
     photos = Photos.query.filter(Photos.route_id == route.id).all()
+    author_comments = []
+    for comment in comments:
+        author_comments.append(Users.query.filter(Users.id == comment.user_id).first().username)
     if request.method == 'GET':
         visit = Visit.query.filter(Visit.route_id == route.id and Visit.user_id == current_user.id).all()
         if len(visit) == 0 or visit is None:
             visit = 0
         else:
             visit = 1
-        return render_template("route.html", user=user, route=route, comments=comments, photos=photos, visit=visit)
+        return render_template("route.html", user=user, route=route, comments=comments, photos=photos, visit=visit, author_comments=author_comments)
     visit = Visit(user_id=current_user.id, route_id=route.id)
     db.session.add(visit)
     db.session.commit()
     visit = 1
-    return render_template("route.html", user=user, route=route, comments=comments, photos=photos, visit=visit)
+    return render_template("route.html", user=user, route=route, comments=comments, photos=photos, visit=visit, author_comments=author_comments)
 
 
 @app.route('/delete_route/<int:id>')
 @login_required
+@limiter.limit("5 per 20 seconds")
 def del_route(id):
     route = Routes.query.filter_by(id=id).first()
     photos = Photos.query.filter(Photos.route_id == route.id).all()
@@ -334,7 +359,15 @@ def del_route(id):
                 db.session.delete(photo)
             db.session.commit()
             flash('Маршрут удалён!', "success")
-            # отправить на почту,что маршрут удалён
+            server = ""
+            if "mail.ru" in current_user.email:
+                server = "mail.ru"
+            elif "gmail.com" in current_user.email:
+                server = "gmail.com"
+            elif "yandex.ru" in current_user.email:
+                server = "yandex.ru"
+            text = f"Маршрут {{ route.title }} удалён!"
+            send_email(server, current_user.email, "Ваш маршрут удалён на сайте 'Маршрутизатор'", text)
             return redirect("/")
         except Exception as e:
             flash('Ошибка при удалении', "danger")
@@ -346,6 +379,7 @@ def del_route(id):
 
 @app.route('/delete_account/<int:id>')
 @login_required
+@limiter.limit("5 per 20 seconds")
 def del_account(id):
     user = Users.query.filter_by(id=id).first()
     try:
@@ -360,6 +394,7 @@ def del_account(id):
 
 
 @app.route('/get_coords/<int:id>', methods=['GET', 'POST'])
+#@limiter.limit("5 per 20 seconds")
 def get_coords(id):
     route = Routes.query.filter_by(id=id).first()
     route_coords = route.route_coords.split("@")
@@ -370,6 +405,7 @@ def get_coords(id):
 
 
 @app.route('/import_coords', methods=['GET', 'POST'])
+#@limiter.limit("5 per 20 seconds")
 def import_coords():
     if request.method == 'POST':
         url = request.json['url']
@@ -422,6 +458,7 @@ def import_coords():
 
 
 @app.route('/map', methods=['GET', 'POST'])
+@limiter.limit("5 per 20 seconds")
 def maps():
     if request.method == 'POST':
         data = request.json
@@ -443,6 +480,7 @@ def maps():
 
 
 @app.route('/edit_data/<int:id>', methods=["POST", "GET"])
+@limiter.limit("5 per 20 seconds")
 def edit_data(id):
     user = Users.query.filter_by(id=id).first()
     if current_user.is_authenticated and (current_user.id == user.id or current_user.admin == 1):
@@ -451,9 +489,12 @@ def edit_data(id):
         if request.method == "POST":
             email = request.form.get('email')
             username = request.form.get('username')
+            file = request.files['file']
+            file.save(os.path.join('static/img', file.filename))
             try:
                 user.email = email
                 user.username = username
+                user.ava = file.filename
                 db.session.commit()
                 flash("Данные изменены", "success")
                 return redirect('/profile')
@@ -466,6 +507,7 @@ def edit_data(id):
 
 
 @app.route('/edit_route/<int:id>', methods=["POST", "GET"])
+@limiter.limit("5 per 20 seconds")
 def edit_route(id):
     route = Routes.query.filter_by(id=id).first()
     photos = Photos.query.filter(Photos.route_id == id).all()
@@ -528,6 +570,7 @@ def edit_route(id):
 
 
 @app.route('/edit_comment/<int:id>', methods=["POST", "GET"])
+@limiter.limit("5 per 20 seconds")
 def edit_comment(id):
     comment = Comments.query.filter_by(id=id).first()
     if current_user.is_authenticated and (current_user.id == comment.user_id or current_user.admin == 1):
@@ -567,6 +610,7 @@ def edit_comment(id):
 
 @app.route('/delete_comment/<int:id>')
 @login_required
+@limiter.limit("5 per 20 seconds")
 def del_comment(id):
     comment = Comments.query.filter_by(id=id).first()
     try:
@@ -581,6 +625,7 @@ def del_comment(id):
 
 @app.route('/delete_photo/<int:id>')
 @login_required
+@limiter.limit("5 per 20 seconds")
 def del_photo(id):
     photo = Photos.query.filter_by(id=id).first()
     route = Routes.query.filter(Routes.id == photo.route_id).first()
@@ -601,6 +646,7 @@ def del_photo(id):
 
 
 @app.route('/edit_photo/<int:id>', methods=["POST", "GET"])
+@limiter.limit("5 per 20 seconds")
 def edit_photo(id):
     photo = Photos.query.filter_by(id=id).first()
     route = Routes.query.filter(Routes.id == photo.route_id).first()
@@ -640,6 +686,7 @@ def edit_photo(id):
 
 
 @app.route('/moderation')
+@limiter.limit("5 per 20 seconds")
 def moderation():
     routes = Routes.query.filter(Routes.check_admin == 0).all()
     comments = Comments.query.filter(Comments.check_admin == 0).all()
@@ -647,12 +694,15 @@ def moderation():
 
 
 @app.route('/history_route/<int:id>', methods=["POST", "GET"])
+@limiter.limit("5 per 20 seconds")
 def history_route(id):
     route = Routes.query.filter_by(id=id).first()
     last_history = History.query.filter(History.route_id == id and History.last == 1).first()
     past_history = History.query.filter(History.route_id == id and History.last == 0).all()
     who_edit = ""
-    if last_history.who_edit == "admin":
+    if last_history is None:
+        who_edit = ""
+    elif last_history.who_edit == "admin":
         who_edit = "администратор"
     else:
         who_edit = "автор"
@@ -708,6 +758,7 @@ def history_route(id):
 
 
 @app.route('/export/gpx/<int:id>', methods=["POST", "GET"])
+@limiter.limit("5 per 20 seconds")
 def export_gpx(id):
     # Создаем GPX файл
     gpx = gpxpy.gpx.GPX()
@@ -731,6 +782,7 @@ def export_gpx(id):
 
 
 @app.route('/export/kml/<int:id>', methods=["POST", "GET"])
+@limiter.limit("5 per 20 seconds")
 def export_kml(id):
     # Создаем KML файл
     kml = simplekml.Kml()
@@ -750,6 +802,7 @@ def export_kml(id):
 
 
 @app.route('/export/kmz/<int:id>', methods=["POST", "GET"])
+@limiter.limit("5 per 20 seconds")
 def export_kmz(id):
     # Создаем KML файл
     kml = simplekml.Kml()
@@ -769,6 +822,7 @@ def export_kmz(id):
 
 
 # @app.route('/export/png/<int:id>', methods=["POST", "GET"])
+#@limiter.limit("5 per 20 seconds")
 # def export_png(id):
 #     apikey = "f3a0fe3a-b07e-4840-a1da-06f18b2ddf13"
 #     route = Routes.query.filter_by(id=id).first()
@@ -803,6 +857,7 @@ def export_kmz(id):
 #     return send_file(png_file_path, as_attachment=True)
 
 @app.route('/places', methods=['POST'])
+#@limiter.limit("5 per 20 seconds")
 def places():
     data = request.json
     latitude = data['latitude']

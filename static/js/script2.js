@@ -34,6 +34,7 @@ function init() {
     });
     document.getElementById('search_places').onclick = getNearbyPlaces;
     document.getElementById('myButton2').onclick = clearRoute;
+    document.getElementById('q').onclick = Q;
 }
 
 function addPoint(coords) {
@@ -122,4 +123,8 @@ function clearRoute() {
     placesDiv.innerHTML = '';
     document.getElementById('place').value = ""
 
+}
+
+function Q() {
+    alert("Инструкция по местам рядом:\n1)Поставить точку на карту, где нужно узнать\n2)В текстовое поле ввести тип места(например, кафе, школа и т.д)\n3)Нажать кнопку 'Места рядом'\nЕсли хотите очистить всё, нажмите кнопку 'Очистить'")
 }
