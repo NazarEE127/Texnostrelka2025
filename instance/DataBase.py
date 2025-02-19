@@ -25,6 +25,7 @@ class Routes(db.Model, UserMixin):
     photos_id = db.Column(db.String)
     route_coords = db.Column(db.String)
     check_admin = db.Column(db.Integer)
+    points_id = db.Column(db.String)
 
 
 class Comments(db.Model, UserMixin):
@@ -58,3 +59,10 @@ class Visit(db.Model, UserMixin):
     user_id = db.Column(db.Integer)
     route_id = db.Column(db.Integer)
 
+
+class Points(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    route_id = db.Column(db.Integer)
+    title = db.Column(db.String)
+    description = db.Column(db.String)
+    photo = db.Column(db.String)

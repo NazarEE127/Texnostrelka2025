@@ -194,7 +194,6 @@ def logout():
 @limiter.limit("5 per 20 seconds")
 def add_route():
     if request.method == 'POST':
-        print("POST")
         title = request.form.get('title')
         description = request.form.get('description')
         public = 1 if request.form.get('public') else 0
@@ -237,10 +236,53 @@ def add_route():
             db.session.refresh(photo)
             text += str(photo.id) + "|"
         r.photos_id = text[:-1]
+        points_id = request.form.get("points_id")[1:]
+        print(points_id)
+        r.points_id = points_id
+        for pi in points_id.split("|"):
+            p = Points.query.filter(Points.id == int(pi)).first()
+            p.route_id = r.id
+            db.session.commit()
         db.session.commit()
         flash("Маршрут успешно создан!", "success")
         return redirect("/")
     return render_template('add_route.html')
+
+
+@app.route("/add_point", methods=['GET', 'POST'])
+@login_required
+@limiter.limit("5 per 20 seconds")
+def add_point():
+    data = request.json
+    id = int(data["point_id"])
+    title = data["title"]
+    description = data["description"]
+    point = Points.query.filter(Points.id == id).first()
+    point.title = title
+    point.description = description
+    db.session.commit()
+    return "OK"
+
+
+@app.route("/add_point_photo", methods=['GET', 'POST'])
+@login_required
+@limiter.limit("5 per 20 seconds")
+def add_point_photo():
+    if 'file' not in request.files:
+        return jsonify({'error': 'Нет файла для загрузки'}), 400
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify({'error': 'Нет выбранного файла'}), 400
+
+    file.save(os.path.join('static/img', file.filename))
+    point = Points(photo=file.filename)
+    db.session.add(point)
+    db.session.commit()
+    db.session.refresh(point)
+    points_id = [f"{point.id}"]
+    return jsonify(points_id)
 
 
 @app.route("/evaluate_route/<int:id>", methods=['GET', 'POST'])

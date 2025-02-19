@@ -10,6 +10,13 @@ function init() {
         zoom: 10,
         controls: ['zoomControl']
     });
+     var searchControl = new ymaps.control.SearchControl({
+                options: {
+                    float: 'right'
+                }
+            });
+
+     map.controls.add(searchControl);
 
     // Обработчик клика по карте
     map.events.add('click', function (e) {
@@ -24,9 +31,20 @@ function init() {
 }
 
 function addPoint(coords) {
+    var i = placemarks.length + 1
     // Добавляем маркер на карту
     let placemark = new ymaps.Placemark(coords, {
-        balloonContent: 'Точка'
+        balloonContent: 'Точка' + i.toString(),
+        balloonContent: `
+                <p><input type="text" id="marker-title" placeholder="Введите название метки"></p>
+                <p><input type="text" id="marker-description" placeholder="Введите описание метки"></p>
+                <p><input type="file" id="fileInput" name="file" required></p>
+                <p><button onclick="saveMarkerName([${coords}])">Сохранить</button></p>
+            `
+    });
+    // Открываем балун при клике на метку
+    placemark.events.add('click', function () {
+        placemark.balloon.open();
     });
 
     map.geoObjects.add(placemark);
@@ -38,7 +56,36 @@ function addPoint(coords) {
     // Обновляем список точек на странице
     updatePointsList();
 }
+window.saveMarkerName = function (coords) {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+        fetch("/add_point_photo", {
+               method: 'POST',
+               body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json(); // Преобразуем ответ в JSON
+            }
+            throw new Error('Ошибка при загрузке файла');
+        })
+        .then(points_id => {
+            fetch("/add_point", {
+                   method: 'POST',
+                   headers: {
+                    'Content-Type': 'application/json'
+                    },
+                   body: JSON.stringify({ "title":  document.getElementById('marker-title').value,
+                                          "description": document.getElementById('marker-description').value,
+                                           "point_id": points_id[0]})
+            })
+            document.getElementById('points_id').value = document.getElementById('points_id').value + "|" + points_id[0];
+        })
 
+
+        }
 function updatePointsList() {
     const pointsList = document.getElementById('pointsList');
     pointsList.innerHTML = '';

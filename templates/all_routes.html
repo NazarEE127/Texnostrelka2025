@@ -1,77 +1,103 @@
-{% extends 'base.html' %}
+ {% extends 'base.html' %}
 
 {% block title %}
 Все маршруты
 {% endblock %}
 
-
-
 {% block main %}
 <style>
-.map {
-    padding: 40px 0;
-    text-align: center;
-}
+    .map {
+        padding: 40px 0;
+        text-align: center;
+    }
 
-.container-m {
-    max-width: 1000px;
-    margin: 0 auto;
-}
+    .container-m {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
 
-h2 {
-    font-size: 35px;
-    font-family: 'Arial Narrow Bold', sans-serif;
-    margin-bottom: 20px;
-}
+    h2 {
+        font-size: 35px;
+        font-family: 'Arial Narrow Bold', sans-serif;
+        margin-bottom: 20px;
+    }
+
+    .route-card {
+        background-color: #d1e7dd; /* Цвет фона карточки */
+        border-radius: 10px; /* Скругление углов */
+        padding: 20px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+    }
+
+    .route-card img {
+        width: 200px;
+        height: 200px;
+        border-radius: 10px;
+        margin-right: 20px;
+    }
+
+    .route-card h4 {
+        margin: 0;
+        font-size: 24px;
+        color: #0f5132; /* Цвет заголовка */
+    }
+
+    .route-card p {
+        margin: 5px 0;
+        font-size: 16px;
+        color: #0f5132; /* Цвет текста */
+    }
+
+    .route-card .btn {
+        margin-top: 10px;
+    }
 </style>
-  <span><h3>Отсортировать по</h3>
-<a href="/all_routes/alphabet" class="btn btn-success">алфавиту(А-Я)</a>
-<a href="/all_routes/alphabet_back" class="btn btn-success">алфавиту(Я-А)</a>
-<a href="/all_routes/rating" class="btn btn-success">рейтингу(по возрастанию)</a>
-      <a href="/all_routes/rating_back" class="btn btn-success">рейтингу(по убыванию)</a>
-    <a href="/all_routes/def" class="btn btn-success">дате добавления</a></span>
-<span style="text-align:right"><h3>Поиск по названию</h3>
-<form method="post" class="needs-validation" enctype="multipart/form-data">
-    <input type="text" name="title" id="title"  placeholder="Введите название" value="" required=""><br>
-    <input type="submit" class="btn btn-primary"  style="text-align: center;" value="Поиск">
-</form>
+
+<span>
+    <h3>Отсортировать по</h3>
+    <a href="/all_routes/alphabet" class="btn btn-success">алфавиту(А-Я)</a>
+    <a href="/all_routes/alphabet_back" class="btn btn-success">алфавиту(Я-А)</a>
+    <a href="/all_routes/rating" class="btn btn-success">рейтингу(по возрастанию)</a>
+    <a href="/all_routes/rating_back" class="btn btn-success">рейтингу(по убыванию)</a>
+    <a href="/all_routes/def" class="btn btn-success">дате добавления</a>
 </span>
-  <h2>Маршруты</h2>
-  {% if routes|length > 0 %}
-  <div class="row row-cols-1 row-cols-sm-6 row-cols-md-6 g-3">
-      {% for i in range(routes|length) %}
-        {% if routes[i].status == 1 %}
-        <div class="col">
-          <div class="card shadow-sm">
-            <div><h4>{{ routes[i].title }}</h4></div>
-            <a href="/route/{{ routes[i].id }}"><img src="/static/img/{{ photos[routes[i].id][0] }}" class="card-img-top" width="50%" height="225"></a>
-            <div class="card-body">
-              <p class="card-text">Рейтинг: <b>{{routes[i].rating}}</b></p>
-              <div class="d-flex justify-content-between align-items-center">
-                {% if routes[i].status == 1 %}
-                <div>
-                  <a href="/route/{{ routes[i].id }}"><button type="button" class="btn btn-sm btn-outline-warning">Открыть</button></a>
-                  {% if current_user.admin == 1 %}
-                  <a href="/edit_route/{{ routes[i].id }}"><button type="button" class="btn btn-sm btn-outline-success">Редактировать</button></a>
-                  {% endif %}
+
+<span style="text-align:right">
+    <h3>Поиск по названию</h3>
+    <form method="post" class="needs-validation" enctype="multipart/form-data">
+        <input type="text" name="title" id="title" placeholder="Введите название" value="" required><br>
+        <input type="submit" class="btn btn-primary" style="text-align: center;" value="Поиск">
+    </form>
+</span>
+
+<h2>Маршруты</h2>
+
+{% if routes|length > 0 %}
+    <div class="row">
+        {% for i in range(routes|length) %}
+            {% if routes[i].status == 1 %}
+                <div class="col-md-6 mb-4">
+                    <div class="route-card p-3 text-bg-success bg-opacity-75 d-flex align-items-center">
+                        <!-- Изображение маршрута -->
+                        <a href="/route/{{ routes[i].id }}">
+                            <img src="/static/img/{{ photos[routes[i].id][0] }}" alt="{{ routes[i].title }}">
+                        </a>
+                        <div>
+                            <h4>{{ routes[i].title }}</h4>
+                            <p>Рейтинг: <b>{{ routes[i].rating }}</b></p>
+                            <a href="/route/{{ routes[i].id }}" class="btn btn-primary">Открыть</a>
+                            {% if current_user.admin == 1 %}
+                                <a href="/edit_route/{{ routes[i].id }}" class="btn btn-success">Редактировать</a>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
-                <div align='right'></div>
-                {% else %}
-                <div class="btn-group">
-                  <p class="card-text">Маршрут приватный</p>
-                </div>
-                {% endif %}
-              </div>
-            </div>
-          </div>
-        </div>
-      {% endif %}
-      {% endfor %}
-    {% else %}
-            <p>Пока у нас нет маршрутов :/</p>
             {% endif %}
-      </div>
-
-
-
+        {% endfor %}
+    </div>
+{% else %}
+    <p>Пока у нас нет маршрутов :/</p>
+{% endif %}
 {% endblock %}

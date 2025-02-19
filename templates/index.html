@@ -1,17 +1,35 @@
-
-
-{% extends 'base.html' %}
+ {% extends 'base.html' %}
 
 {% block title %}
 Главная
 {% endblock %}
 
-
 {% block main %}
+<img src="/static/ico/main.ico" style="width: 200px; height: 200px;" alt="Наша картинка">
 <div style="text-align: center">
     <p style="font-size:40px;font-weight:20px;color:#28827b">Маршрутизатор - сервис для планирования и организации ваших туристических маршрутов.</p>
-    <p style="font-size:40px;font-weight:20px;color:#28827b">Отслеживайте интересные маршруты других пользователей и выкладывайте свои собственные.</p>
-    <p style="font-size:40px;font-weight:20px;color:#28827b">Оставляйте комментарии и ставьте отметки на уже пройденных маршрутах. Развлекайтесь.</p>
-    <p style="font-size:40px;font-weight:20px;color:#28827b">Развлекайтесь.</p>
+    <div id="hidden-text" style="display: none;">
+        <p style="font-size:40px;font-weight:20px;color:#28827b">Отслеживайте интересные маршруты других пользователей и выкладывайте свои собственные.</p>
+        <p style="font-size:40px;font-weight:20px;color:#28827b">Оставляйте комментарии и ставьте отметки на уже пройденных маршрутах. Развлекайтесь.</p>
+        <p style="font-size:40px;font-weight:20px;color:#28827b">Развлекайтесь.</p>
+    </div>
+    <button onclick="toggleText()" style="font-size: 20px; color: #28827b; background: none; border: none; cursor: pointer; text-decoration: underline;">
+        Подробнее...
+    </button>
 </div>
+
+<script>
+    function toggleText() {
+        const hiddenText = document.getElementById('hidden-text');
+        const button = document.querySelector('button');
+
+        if (hiddenText.style.display === 'none') {
+            hiddenText.style.display = 'block';
+            button.textContent = 'Свернуть';
+        } else {
+            hiddenText.style.display = 'none';
+            button.textContent = 'Подробнее...';
+        }
+    }
+</script>
 {% endblock %}
