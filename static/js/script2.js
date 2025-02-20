@@ -1,5 +1,6 @@
 let map;
 let placemarks = [];
+let main_placemarks = [];
 let point_on_map = [];
 
 ymaps.ready(init);
@@ -21,14 +22,45 @@ function init() {
     });
 
     const route_id = document.getElementById('current_id').value
+    const mode = document.getElementById('mode').value
     var text = '/get_coords/' + route_id.toString()
     fetch(text)
     .then(response => response.json())
     .then(data => {
-          let points = data.map(location => [location[0], location[1]]);
+
+          let points = data["res"].map(location => [location[0], location[1]]);
+          var i = 0;
+          points.forEach(point => {
+                const src = "/static/img/" + data["photos"][i]
+                const title = data["titles"][i]
+                const description = data["descriptions"][i]
+                console.log(title)
+                console.log(description)
+                let main_placemark = new ymaps.Placemark(point, {
+                balloonContent: `
+                                <p>${title}</p>
+                                <p>${description}</p>
+                                <img src="${src}" style="width: 70px; height: 70px">
+                `
+            },
+            {
+                preset: 'islands#icon',
+                iconColor: '#00FF00' // Задайте нужный цвет в формате HEX
+            });
+            i++;
+            map.geoObjects.add(main_placemark);
+            main_placemarks.push(main_placemark);
+          });
+
           let multiRoute = new ymaps.multiRouter.MultiRoute({
-              referencePoints: points
-     });
+              referencePoints: points,
+              params: {
+                results: 1,
+                routingMode: mode // 'pedestrian' или 'auto'
+            }},{
+                        boundsAutoApply: true
+                    });
+
 
           map.geoObjects.add(multiRoute);
     });

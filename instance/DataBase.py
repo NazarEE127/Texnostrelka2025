@@ -26,6 +26,7 @@ class Routes(db.Model, UserMixin):
     route_coords = db.Column(db.String)
     check_admin = db.Column(db.Integer)
     points_id = db.Column(db.String)
+    mode = db.Column(db.String)
 
 
 class Comments(db.Model, UserMixin):

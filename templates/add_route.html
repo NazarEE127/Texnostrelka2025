@@ -23,14 +23,21 @@
         <label for="public">Публичный маршрут</label>
         <input type="checkbox" id="public" name="public">
     </div>
+
     <br>
     <div class="form-group">
         <input type="hidden" id="routeCoordinates" name="routeCoordinates">
         <input type="hidden" id="points_id" name="points_id">
+        <input type="hidden" id="mode_type" name="mode_type" value="auto">
     </div>
-    <br>
-    <button type="submit" class="btn btn-success" style="position: absolute;top: 1050px;left: 280px;">Добавить маршрут</button>
+    <button type="submit" class="btn btn-success" style="position: absolute;top: 1065px;left: 280px;">Добавить маршрут</button>
 </form>
+ <label for="mode">Тип маршрута:</label>
+ <select id="mode">
+        <option value="auto">На машине</option>
+        <option value="pedestrian">Пешком</option>
+    </select>
+
 <div id="map" style="width: 800px; height: 600px"></div>
 <br>
         <div id="pointsList"></div>

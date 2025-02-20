@@ -89,7 +89,7 @@
                             <p>Рейтинг: <b>{{ routes[i].rating }}</b></p>
                             <a href="/route/{{ routes[i].id }}" class="btn btn-primary">Открыть</a>
                             {% if current_user.admin == 1 %}
-                                <a href="/edit_route/{{ routes[i].id }}" class="btn btn-success">Редактировать</a>
+                                <a href="/edit_route/{{ routes[i].id }}" class="btn btn-light">Редактировать</a>
                             {% endif %}
                         </div>
                     </div>

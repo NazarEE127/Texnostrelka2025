@@ -82,6 +82,7 @@ window.saveMarkerName = function (coords) {
                                            "point_id": points_id[0]})
             })
             document.getElementById('points_id').value = document.getElementById('points_id').value + "|" + points_id[0];
+            alert("Точка сохранена!\nМожете закрыть окно с этой меткой!")
         })
 
 
@@ -102,6 +103,7 @@ function getRoute() {
         alert('Пожалуйста, добавьте хотя бы 2 точки для построения маршрута.');
         return;
     }
+    console.log(points)
     fetch('/map', {
         method: 'POST',
         headers: {
@@ -118,14 +120,18 @@ function getRoute() {
                 map.geoObjects.remove(map.geoObjects.get(i));
             }
         }
-
+        const mode = document.getElementById('mode').value;
+        document.getElementById('mode_type').value = mode;
         // Создаем маршрут
         let multiRoute = new ymaps.multiRouter.MultiRoute({
             referencePoints: coordinates,
             params: {
-                results: 1
-            }
-        });
+                results: 1,
+                routingMode: mode // 'pedestrian' или 'auto'
+            }},{
+                        boundsAutoApply: true
+                    }
+        );
         document.getElementById('routeCoordinates').value = JSON.stringify(coordinates);
         map.geoObjects.add(multiRoute);
         map.setBounds(multiRoute.getBounds());

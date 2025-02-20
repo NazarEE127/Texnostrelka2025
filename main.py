@@ -209,9 +209,9 @@ def add_route():
         for p in route_coords:
             coords_text += f"{p[0]};{p[1]}@"
         coords_text = coords_text[:-1]
-
+        mode = request.form.get("mode_type")
         route = Routes(title=title, description=description, status=status,
-                       user_id=current_user.id, rating=0, route_coords=coords_text, check_admin=0)
+                       user_id=current_user.id, rating=0, route_coords=coords_text, check_admin=0, mode=mode)
         server = ""
         if "mail.ru" in current_user.email:
             server = "mail.ru"
@@ -439,11 +439,19 @@ def del_account(id):
 #@limiter.limit("5 per 20 seconds")
 def get_coords(id):
     route = Routes.query.filter_by(id=id).first()
+    points = Points.query.filter(Points.route_id == id).all()
     route_coords = route.route_coords.split("@")
     res = []
+    titles = []
+    descriptions = []
+    photos = []
+    for point in points:
+        titles.append(point.title)
+        descriptions.append(point.description)
+        photos.append(point.photo)
     for point_coords in route_coords:
         res.append(point_coords.split(";"))
-    return jsonify(res)
+    return {"res": res, "titles": titles, "descriptions": descriptions, "photos": photos}
 
 
 @app.route('/import_coords', methods=['GET', 'POST'])
@@ -502,23 +510,12 @@ def import_coords():
 @app.route('/map', methods=['GET', 'POST'])
 @limiter.limit("5 per 20 seconds")
 def maps():
-    if request.method == 'POST':
-        data = request.json
-        points = data['points']
-
-        geocode_url = "https://geocode-maps.yandex.ru/1.x/"
-        api_key = "fc583f53-ce4b-49a8-9926-2cc9b2ac3082"
-
-        coordinates = []
-        for point in points:
-            str_point = f"{point[1]},{point[0]}"
-            response = requests.get(geocode_url, params={'apikey': api_key, 'geocode': str_point, 'format': 'json'})
-            data = response.json()
-            coords = data['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['Point']['pos'].split()
-            coordinates.append([float(coords[1]), float(coords[0])])  # [latitude, longitude]
-        return jsonify(coordinates)
-
-    return render_template("map.html")
+    data = request.json
+    points = data['points']
+    coordinates = []
+    for point in points:
+        coordinates.append([float(point[0]), float(point[1])])  # [longitude, latitude]
+    return jsonify(coordinates)
 
 
 @app.route('/edit_data/<int:id>', methods=["POST", "GET"])
