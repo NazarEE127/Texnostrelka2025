@@ -143,7 +143,7 @@ img.displayed {
           </ul>
         </div>
 <a href="/evaluate_route/{{ route.id }}" class="btn btn-warning">Оценить</a>
-{% if current_user.id == route.user_id %}
+{% if current_user.id == route.user_id or current_user.admin == 1 %}
 <a href="/history_route/{{ route.id }}" class="btn btn-primary">История правок</a>
     <a href="/edit_route/{{ route.id }}" class="btn btn-success">Редактировать</a>
     <a href="/delete_route/{{ route.id }}" class="btn btn-danger">Удалить</a>

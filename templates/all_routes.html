@@ -54,7 +54,7 @@
         margin-top: 10px;
     }
 </style>
-
+{% if id_user == -1 %}
 <span>
     <h3>Отсортировать по</h3>
     <a href="/all_routes/alphabet" class="btn btn-success">алфавиту(А-Я)</a>
@@ -63,6 +63,16 @@
     <a href="/all_routes/rating_back" class="btn btn-success">рейтингу(по убыванию)</a>
     <a href="/all_routes/def" class="btn btn-success">дате добавления</a>
 </span>
+ {% else %}
+ <span>
+    <h3>Отсортировать по</h3>
+    <a href="/all_routes/{{ id_user }}/alphabet" class="btn btn-success">алфавиту(А-Я)</a>
+    <a href="/all_routes/{{ id_user }}/alphabet_back" class="btn btn-success">алфавиту(Я-А)</a>
+    <a href="/all_routes/{{ id_user }}/rating" class="btn btn-success">рейтингу(по возрастанию)</a>
+    <a href="/all_routes/{{ id_user }}/rating_back" class="btn btn-success">рейтингу(по убыванию)</a>
+    <a href="/all_routes/{{ id_user }}/def" class="btn btn-success">дате добавления</a>
+</span>
+ {% endif %}
 
 <span style="text-align:right">
     <h3>Поиск по названию</h3>

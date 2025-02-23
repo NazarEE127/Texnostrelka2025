@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" version="1.1" creator="gpx.py -- https://github.com/tkrajina/gpxpy">
-  <wpt lat="56.011711" lon="92.864268">
-    <name>“очка 1</name>
+  <wpt lat="56.010996" lon="92.870466">
+    <name>тест метки 1</name>
+    <desc>описание этой метки</desc>
   </wpt>
-  <wpt lat="51.50845" lon="-0.121515">
-    <name>“очка 2</name>
+  <wpt lat="55.992387" lon="92.951629">
+    <name>тест метки 2</name>
+    <desc>описание этой метки2</desc>
   </wpt>
 </gpx>

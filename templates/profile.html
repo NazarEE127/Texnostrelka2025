@@ -7,41 +7,38 @@
 
 
 {% block main %}
-    <br>
-    <div style="display:table">
-    <img style="dislpay:table-row; border-radius:30px" src="/static/img/{{user.ava}}" alt="ава" width="150" height="150">
-        <div style="display:table-cell">
+    <div class='row p-3 rounded-2 my-3' style="border: 5px var(--bs-success-border-subtle) solid">
+        <div class="col-2">
+            <img src="/static/img/{{user.ava}}" alt="ава" width="200" height="200">
+        </div>
+        <div class="col-9 mt-3">
             <h4>Логин: <em>{{user.username}}</em></h4>
-            <h4>Email: <em>{{user.email}}</em>({% if user.verified == 1 %}подтверждён{% else %}не подтверждён{% endif %})</h4>
-
-        <a href="/edit_data/{{ current_user.id }}" class="btn btn-primary">Изменить данные</a>
-        <a href="/delete_account/{{ current_user.id }}" class="btn btn-danger">Удалить аккаунт</a>
-
+            <h4>Email: <em>{{user.email}}</em>({% if user.verified == 1 %}<div style="color:green;">подтверждён</div>{% else %}<div style="color:red;">не подтверждён</div>{% endif %})</h4>
+            <a href="/edit_data/{{ current_user.id }}" class="btn btn-primary">Изменить данные</a>
+            <a href="/delete_account/{{ current_user.id }}" class="btn btn-danger">Удалить аккаунт</a>
         </div>
-    <br>
-        </div>
-    <div style="display: flex;justify-content: flex-end;">
-            <p><h4>Мои маршруты:</h4></p>
-                <br>
-            {% if routes|length > 0 %}
-                {% if routes|length > 3 %}
-            {% for i in range(3) %}
+    </div>
+    <div>
+        <p><h4>Мои маршруты:</h4></p>
+        {% if routes|length > 0 %}
+            {% if routes|length > 3 %}
+        {% for i in range(3) %}
+        <ul>
+            <li><p><a href="/route/{{ routes[i].id }}" class="alert-link"><h5>{{ routes[i].title }}</h5></a></p></li>
+        {% endfor %}
+            <a href="/all_route/{{ current_user.id }}/def" class="btn btn-secondary">Показать все</a>
+            </ul></p>
+            {% else %}
+            {% for i in range(routes|length) %}
             <ul>
                 <li><p><a href="/route/{{ routes[i].id }}" class="alert-link"><h5>{{ routes[i].title }}</h5></a></p></li>
-            {% endfor %}
-                <a href="/all_route/{{ current_user.id }}" class="btn btn-secondary">Показть все</a>
-                </ul></p>
-                {% else %}
-                {% for i in range(routes|length) %}
-                <ul>
-                    <li><p><a href="/route/{{ routes[i].id }}" class="alert-link"><h5>{{ routes[i].title }}</h5></a></p></li>
-                </ul>
-            {% endfor %}
-                {% endif %}
-            {% else %}
-            <p>У вас ещё нет маршрутов</p>
+            </ul>
+        {% endfor %}
             {% endif %}
-            </div>
+        {% else %}
+        <p>У вас ещё нет маршрутов</p>
+        {% endif %}
+    </div>
 <a href="/comments/{{ current_user.id }}" class="btn btn-warning" style="float: right;">Мои комментарии</a>
 <br>
 <br>

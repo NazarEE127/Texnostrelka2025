@@ -1,52 +1,79 @@
- {% extends 'base.html' %}
+{% extends 'base.html' %}
 
 {% block title %}
 Добавление маршрута
 {% endblock %}
 
 {% block main %}
-<form method="POST" enctype="multipart/form-data">
-    <div class="form-group">
-        <label for="title"><b>Название маршрута</b></label>
-        <input type="text" class="form-control" id="title" name="title" required>
-    </div>
-    <div class="form-group">
-        <label for="files"><b>Фотографии маршрута</b></label>
-        <input type="file" id="files" name="files" multiple>
-    </div>
-    <div class="form-group">
-        <label for="description"><b>Описание маршрута</b></label>
-        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
-    </div>
+<style>
+    .main-container {
+        display: flex; /* Используем Flexbox */
+        flex-direction: row; /* Элементы в строку (по умолчанию) */
+        gap: 20px; /* Расстояние между картой и формой */
+    }
+    #map {
+    flex: 2; /* Карта занимает 2/3 ширины */
+    max-width: 66%; /* Ограничиваем ширину карты */
+}
+.form-container {
+    flex: 1; /* Форма занимает 1/3 ширины */
+    max-width: 33%; /* Ограничиваем ширину формы */
+}
+</style>
+<main>
+    <div class="main-container"> <!-- Контейнер для карты и формы -->
+        <!-- Карта -->
+        <div id="map" style="width: 100%; height: 800px;"></div>
 
-    <div class="form-group mt-4">
-        <label for="public">Публичный маршрут</label>
-        <input type="checkbox" id="public" name="public">
+        <!-- Форма -->
+        <div class="form-container">
+            <form class="row g-3 needs-validation" novalidate method="POST" enctype="multipart/form-data" action="{{ url_for('add_route') }}">
+                <div class="form-group mt-4">
+                    <label for="title">Название маршрута</label>
+                    <input type="text" class="form-control" id="title" name="title" required>
+                    <div class="valid-feedback">Все хорошо!</div>
+                    <div class="invalid-feedback">Пожалуйста, введите название маршрута.</div>
+                </div>
+                <div class="form-group mt-4">
+                    <label for="files">Фотографии маршрута</label>
+                    <input type="file" id="files" name="files" multiple>
+                    <div class="valid-feedback">Все хорошо!</div>
+                    <div class="invalid-feedback">Пожалуйста, добавте фотографии маршрута.</div>
+                </div>
+                <div class="form-group mt-4">
+                    <label for="description">Описание маршрута</label>
+                    <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    <div class="valid-feedback">Все хорошо!</div>
+                    <div class="invalid-feedback">Пожалуйста, введите описание маршрута.</div>
+                </div>
+                <div class="form-group mt-4">
+                    <label for="public">Публичный маршрут</label>
+                    <input type="checkbox" id="public" name="public">
+                </div>
+                <div class="form-group mt-4">
+                    <input type="hidden" id="routeCoordinates" name="routeCoordinates">
+                    <input type="hidden" id="points_id" name="points_id">
+                    <input type="hidden" id="mode_type" name="mode_type" value="auto">
+                </div>
+                <button type="submit" class="btn btn-success" style="position: absolute;top: 600px;left: 950px;width: 200px; height: 50px;">Добавить маршрут</button>
+            </form>
+            <label for="mode">Тип маршрута:</label>
+            <select id="mode">
+                <option value="auto">На машине</option>
+                <option value="pedestrian">Пешком</option>
+            </select>
+            <br>
+            <br>
+            <button id="myButton" class="btn btn-success">Построить маршрут</button>
+            <button id="myButton2" class="btn btn-danger">Очистить маршрут</button>
+            <br>
+            <br>
+            <button id="import" class="btn btn-warning">Импортировать</button>
+            <input type="text" id="url" name="url">
+            <button id="q" style="width: 30px; height: 30px;border: none;background-image: url('/static/ico/b.ico');background-size: cover;"></button>
+        </div>
     </div>
-
-    <br>
-    <div class="form-group">
-        <input type="hidden" id="routeCoordinates" name="routeCoordinates">
-        <input type="hidden" id="points_id" name="points_id">
-        <input type="hidden" id="mode_type" name="mode_type" value="auto">
-    </div>
-    <button type="submit" class="btn btn-success" style="position: absolute;top: 1065px;left: 280px;">Добавить маршрут</button>
-</form>
- <label for="mode">Тип маршрута:</label>
- <select id="mode">
-        <option value="auto">На машине</option>
-        <option value="pedestrian">Пешком</option>
-    </select>
-
-<div id="map" style="width: 800px; height: 600px"></div>
-<br>
-        <div id="pointsList"></div>
-        <button id="myButton" class="btn btn-success">Построить маршрут</button>
-        <button id="myButton2" class="btn btn-danger">Очистить маршрут</button>
-        <button id="import" class="btn btn-warning">Импортировать</button>
-        <input type="text" id="url" name="url">
-        <button id="q" style="width: 30px; height: 30px;border: none;background-image: url('/static/ico/b.ico');background-size: cover;"></button>
-<br>
-<br><br>
+</main>
 <script type="module" src="static/js/script.js"></script>
+<script src="static/js/check_form.js"></script>
 {% endblock %}
